@@ -16,9 +16,9 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
   const animationRef = useRef(null);
 
   useEffect(() => {
-    if (!window.L) {
+    if (!window.L || !window.L.Routing) {
       const interval = setInterval(() => {
-        if (window.L) {
+        if (window.L && window.L.Routing) {
           setIsMapLoaded(true);
           clearInterval(interval);
         }
@@ -26,6 +26,8 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
       return () => clearInterval(interval);
     }
   }, []);
+
+  const routeDataRef = useRef({ coordinates: [], waypointIndices: [] });
 
   useEffect(() => {
     // Initialize map only once
@@ -45,12 +47,31 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
         maxZoom: 20
       }).addTo(map);
 
-      // Draw polyline route
-      const latlngs = WAYPOINTS.map(wp => [wp.lat, wp.lng]);
-      const polyline = L.polyline(latlngs, { color: '#38bdf8', weight: 4, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
-      
-      // Fit bounds to show whole route
-      map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+      const latlngs = WAYPOINTS.map(wp => L.latLng(wp.lat, wp.lng));
+
+      // Use Leaflet Routing Machine
+      const routingControl = L.Routing.control({
+        waypoints: latlngs,
+        routeWhileDragging: false,
+        addWaypoints: false,
+        show: false, // hide the text instruction panel
+        createMarker: function() { return null; }, // we will add our own circle markers
+        lineOptions: {
+          styles: [{ color: '#38bdf8', opacity: 0.8, weight: 5 }]
+        },
+        fitSelectedRoutes: true
+      }).addTo(map);
+
+      routingControl.on('routesfound', function(e) {
+        const routes = e.routes;
+        if (routes && routes.length > 0) {
+          const route = routes[0];
+          routeDataRef.current = {
+            coordinates: route.coordinates,
+            waypointIndices: route.waypointIndices // array mapping WP index to coordinates index
+          };
+        }
+      });
 
       // Add nodes as circle markers
       WAYPOINTS.forEach((wp, idx) => {
@@ -102,17 +123,41 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
     const nextWP = WAYPOINTS[currentNodeIndex + 1];
 
     if (stepStatus === 'transit' && nextWP) {
-      // Animate between currentWP and nextWP over 15 seconds
+      const { coordinates, waypointIndices } = routeDataRef.current;
+      
+      let segmentCoords = [];
+      if (coordinates.length > 0 && waypointIndices.length > 0) {
+        const startIndex = waypointIndices[currentNodeIndex];
+        const endIndex = waypointIndices[currentNodeIndex + 1];
+        if (startIndex !== undefined && endIndex !== undefined) {
+          segmentCoords = coordinates.slice(startIndex, endIndex + 1);
+        }
+      }
+
+      // Fallback to straight line if routing data isn't ready
+      if (segmentCoords.length === 0) {
+        segmentCoords = [{lat: currentWP.lat, lng: currentWP.lng}, {lat: nextWP.lat, lng: nextWP.lng}];
+      }
+
       const duration = 15000; 
       const start = performance.now();
+      const totalPoints = segmentCoords.length;
       
       const animate = (time) => {
         let elapsed = time - start;
         let progress = Math.min(elapsed / duration, 1);
         
-        // Linear interpolation
-        const lat = currentWP.lat + (nextWP.lat - currentWP.lat) * progress;
-        const lng = currentWP.lng + (nextWP.lng - currentWP.lng) * progress;
+        // Find exact point in segment
+        const exactIndex = progress * (totalPoints - 1);
+        const lowerIndex = Math.floor(exactIndex);
+        const upperIndex = Math.ceil(exactIndex);
+        const weight = exactIndex - lowerIndex;
+        
+        const p1 = segmentCoords[lowerIndex];
+        const p2 = segmentCoords[upperIndex] || p1;
+        
+        const lat = p1.lat + (p2.lat - p1.lat) * weight;
+        const lng = p1.lng + (p2.lng - p1.lng) * weight;
         
         markerRef.current.setLatLng([lat, lng]);
 
