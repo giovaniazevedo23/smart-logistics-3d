@@ -25,6 +25,11 @@ export const COMPANIES_DATA = [
     progress: 81,
     speed: 82,
     status: 'Em Trânsito - Cadeia de Frio Ideal',
+    details: {
+      description: 'Carreta frigorífica de alta performance para transporte de carnes nobres embaladas a vácuo, garantindo manutenção rigorosa de temperatura.',
+      useCases: ['Transporte de carnes premium (Angus, Wagyu)', 'Logística de cortes resfriados para redes de restaurantes', 'Exportação inter-estadual de perecíveis de alto valor'],
+      specifications: ['Cavalo Mecânico: Scania R540 6x4', 'Carroceria: Baú Frigorífico Tri-Dem Cryovac', 'Refrigeração: ThermoKing de alta precisão']
+    },
     containerLayout: {
       totalPallets: 28,
       zones: [
@@ -72,6 +77,11 @@ export const COMPANIES_DATA = [
     progress: 75,
     speed: 78,
     status: 'Em Trânsito - Seguro',
+    details: {
+      description: 'Veículo com triplo isolamento térmico especializado em logística farmacêutica de altíssima exigência, como vacinas e medicamentos termolábeis.',
+      useCases: ['Transporte de Vacinas RNAm e insumos biológicos', 'Distribuição de insulina e medicamentos de alto custo', 'Logística hospitalar de urgência'],
+      specifications: ['Cavalo Mecânico: Volvo FH 540', 'Carroceria: Baú de Triplo Isolamento', 'Refrigeração: ThermoKing Sentinel Ultra com redundância']
+    },
     containerLayout: {
       totalPallets: 12,
       zones: [
@@ -118,7 +128,12 @@ export const COMPANIES_DATA = [
     eta: '03 Dias, 14 Horas',
     progress: 78,
     speed: 22, // nós
-    status: 'Navegação Internacional em Rota',
+    status: 'Navegação em Alto Mar - Estável',
+    details: {
+      description: 'Navio porta-contêineres de classe Post-Panamax projetado para rotas intercontinentais com alta eficiência energética e capacidade para contêineres reefer.',
+      useCases: ['Exportação de commodities em larga escala', 'Transporte internacional de contêineres refrigerados (Reefer)', 'Rotas transoceânicas de longa duração'],
+      specifications: ['Classe: Post-Panamax', 'Capacidade: 4500 TEUs', 'Motorização: Diesel-Elétrico de alta eficiência']
+    },
     containerLayout: {
       totalPallets: 24,
       zones: [
@@ -165,7 +180,12 @@ export const COMPANIES_DATA = [
     eta: '02h 10m',
     progress: 82,
     speed: 880, // km/h
-    status: 'Voo de Cruzeiro - Altitude FL370',
+    status: 'Aproximação Final - No Horário',
+    details: {
+      description: 'Aeronave cargueira de longo alcance otimizada para fretes expressos intercontinentais e cargas perecíveis ou de alto valor agregado.',
+      useCases: ['Frete expresso internacional de eletrônicos', 'Transporte de perecíveis de curtíssima validade (flores, frutos do mar)', 'Envio de componentes automotivos e aeroespaciais críticos'],
+      specifications: ['Aeronave: Boeing 777F Freighter', 'Capacidade: 102 Toneladas', 'Velocidade de Cruzeiro: 905 km/h (Mach 0.84)']
+    },
     containerLayout: {
       totalPallets: 8,
       zones: [
@@ -212,6 +232,11 @@ export const COMPANIES_DATA = [
     progress: 82,
     speed: 55, // km/h
     status: 'Em Trânsito Ferroviário',
+    details: {
+      description: 'Sistema de transporte ferroviário de alta capacidade, equipado com vagões climatizados para preservação de grãos e insumos agrícolas sensíveis à umidade e temperatura.',
+      useCases: ['Logística de exportação de soja e milho', 'Transporte de insumos agrícolas a granel', 'Distribuição multimodal entre regiões produtoras e portos'],
+      specifications: ['Locomotiva: GE Evolution Series', 'Capacidade: 80 vagões fechados', 'Sistema: Monitoramento remoto de carga via rede ferroviária']
+    },
     containerLayout: {
       totalPallets: 40,
       zones: [

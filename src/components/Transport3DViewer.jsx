@@ -78,7 +78,7 @@ export default function Transport3DViewer({ activeCompany }) {
     vehicleGroupRef.current = vehicleGroup;
 
     // Build model based on transportType
-    if (activeCompany.id !== 'frigorifico-silva') {
+    if (activeCompany.id !== 'frigorifico-silva' && activeCompany.id !== 'coldchain-express') {
       buildVehicle3DModel(activeCompany.transportType, vehicleGroup, activeCompany.color);
     }
 
@@ -233,12 +233,12 @@ export default function Transport3DViewer({ activeCompany }) {
           cursor: 'grab', 
           position: 'relative', 
           zIndex: 1,
-          display: activeCompany.id === 'frigorifico-silva' ? 'none' : 'block'
+          display: (activeCompany.id === 'frigorifico-silva' || activeCompany.id === 'coldchain-express') ? 'none' : 'block'
         }} 
       />
 
-      {/* Sketchfab Iframe Embed for Frigorifico Silva */}
-      {activeCompany.id === 'frigorifico-silva' && (
+      {/* Sketchfab Iframe Embed */}
+      {(activeCompany.id === 'frigorifico-silva' || activeCompany.id === 'coldchain-express') && (
         <div style={{
           position: 'absolute',
           top: 0,
@@ -248,7 +248,7 @@ export default function Transport3DViewer({ activeCompany }) {
           zIndex: 5
         }}>
           <iframe 
-            title="Amostra - Caminhão Frigorifico Silva" 
+            title={activeCompany.transportName}
             frameBorder="0" 
             allowFullScreen 
             mozallowfullscreen="true" 
@@ -258,7 +258,9 @@ export default function Transport3DViewer({ activeCompany }) {
             execution-while-out-of-viewport="true"
             execution-while-not-rendered="true"
             web-share="true" 
-            src="https://sketchfab.com/models/477df99208b349129de9e935827b2c25/embed?autostart=1&transparent=1&ui_controls=0&ui_infos=0&ui_watermark=0"
+            src={activeCompany.id === 'frigorifico-silva' 
+              ? 'https://sketchfab.com/models/477df99208b349129de9e935827b2c25/embed?autostart=1&transparent=1&ui_controls=0&ui_infos=0&ui_watermark=0'
+              : 'https://sketchfab.com/models/81efb5ce11174999843aca2ce3adb28c/embed?autostart=1&transparent=1&ui_controls=0&ui_infos=0&ui_watermark=0'}
             style={{ width: '100%', height: '100%' }}
           ></iframe>
         </div>
@@ -276,10 +278,10 @@ export default function Transport3DViewer({ activeCompany }) {
         pointerEvents: 'none'
       }}>
         <span className="badge badge-cyan" style={{ pointerEvents: 'auto', backdropFilter: 'blur(8px)' }}>
-          <Sparkles size={12} /> {activeCompany.id === 'frigorifico-silva' ? 'Sketchfab 3D Model' : 'Renderização Three.js WebGL 3D'}
+          <Sparkles size={12} /> {(activeCompany.id === 'frigorifico-silva' || activeCompany.id === 'coldchain-express') ? 'Sketchfab 3D Model' : 'Renderização Three.js WebGL 3D'}
         </span>
         <span style={{ fontSize: '0.75rem', color: '#94a3b8', background: 'rgba(15, 23, 42, 0.7)', padding: '4px 10px', borderRadius: '20px' }}>
-          💡 {activeCompany.id === 'frigorifico-silva' ? 'Interaja com o modelo 3D usando o mouse' : 'Arraste com o mouse para girar o veículo em 360°'}
+          💡 {(activeCompany.id === 'frigorifico-silva' || activeCompany.id === 'coldchain-express') ? 'Interaja com o modelo 3D usando o mouse' : 'Arraste com o mouse para girar o veículo em 360°'}
         </span>
       </div>
     </div>

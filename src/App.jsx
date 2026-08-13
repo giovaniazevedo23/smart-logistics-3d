@@ -113,6 +113,39 @@ export default function App() {
           onSelectCompany={handleSelectCompany}
         />
 
+        {/* 1.5. Transport Detailing Panel (Detalhamento do Transporte) */}
+        {activeCompany.details && (
+          <section className="glass-panel" style={{ marginBottom: '24px', padding: '20px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '16px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.5rem' }}>{activeCompany.logo}</span> Detalhamento do Transporte: {activeCompany.transportName}
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+              <div>
+                <h3 style={{ fontSize: '0.9rem', color: '#00f2fe', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Descrição & Função</h3>
+                <p style={{ color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5' }}>{activeCompany.details.description}</p>
+              </div>
+              
+              <div>
+                <h3 style={{ fontSize: '0.9rem', color: '#00f2fe', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Onde e Quando Utilizar</h3>
+                <ul style={{ color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5', paddingLeft: '20px', margin: 0 }}>
+                  {activeCompany.details.useCases.map((useCase, idx) => (
+                    <li key={idx} style={{ marginBottom: '4px' }}>{useCase}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '0.9rem', color: '#00f2fe', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Especificações Técnicas</h3>
+                <ul style={{ color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5', paddingLeft: '20px', margin: 0 }}>
+                  {activeCompany.details.specifications.map((spec, idx) => (
+                    <li key={idx} style={{ marginBottom: '4px' }}>{spec}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* 2. Interactive 3D Section Switcher (Veículo 3D vs Planta Interna do Contêiner) */}
         <section style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
