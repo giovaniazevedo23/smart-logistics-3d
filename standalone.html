@@ -577,6 +577,8 @@
     // 3D Vehicle Renderer Component
     function Transport3DViewer({ activeCompany }) {
       const mountRef = useRef(null);
+      const [tilt, setTilt] = useState({ x: 0, y: 0 });
+      const [isHovering, setIsHovering] = useState(false);
 
       useEffect(() => {
         const container = mountRef.current;
@@ -628,178 +630,180 @@
         const group = new THREE.Group();
         scene.add(group);
 
-        if (activeCompany.transportType === 'truck') {
-          const trailerSideTexture = createRefrigeratedTrailerTexture();
-          const doorTexture = createCabDoorTexture();
-          const vwGrilleTexture = createVWGrilleTexture();
+        if (activeCompany.id !== 'frigorifico-silva') {
+          if (activeCompany.transportType === 'truck') {
+            const trailerSideTexture = createRefrigeratedTrailerTexture();
+            const doorTexture = createCabDoorTexture();
+            const vwGrilleTexture = createVWGrilleTexture();
 
-          // Cab Group (VW Constellation)
-          const cabGroup = new THREE.Group();
-          cabGroup.position.set(-4.2, 0, 0);
+            // Cab Group (VW Constellation)
+            const cabGroup = new THREE.Group();
+            cabGroup.position.set(-4.2, 0, 0);
 
-          const cabinGeo = new THREE.BoxGeometry(2.5, 2.7, 2.3);
-          const whitePaintMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.15, metalness: 0.2 });
-          const cabinMesh = new THREE.Mesh(cabinGeo, whitePaintMat);
-          cabinMesh.position.set(0, 2.2, 0);
-          cabinMesh.castShadow = true;
-          cabGroup.add(cabinMesh);
+            const cabinGeo = new THREE.BoxGeometry(2.5, 2.7, 2.3);
+            const whitePaintMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.15, metalness: 0.2 });
+            const cabinMesh = new THREE.Mesh(cabinGeo, whitePaintMat);
+            cabinMesh.position.set(0, 2.2, 0);
+            cabinMesh.castShadow = true;
+            cabGroup.add(cabinMesh);
 
-          // Sun Visor
-          const visorGeo = new THREE.BoxGeometry(0.2, 0.25, 2.25);
-          const visorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.2 });
-          const visor = new THREE.Mesh(visorGeo, visorMat);
-          visor.position.set(-1.26, 3.4, 0);
-          cabGroup.add(visor);
+            // Sun Visor
+            const visorGeo = new THREE.BoxGeometry(0.2, 0.25, 2.25);
+            const visorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.2 });
+            const visor = new THREE.Mesh(visorGeo, visorMat);
+            visor.position.set(-1.26, 3.4, 0);
+            cabGroup.add(visor);
 
-          // Roof Deflector Spoiler
-          const spoilerShape = new THREE.Shape();
-          spoilerShape.moveTo(-1.25, 0);
-          spoilerShape.lineTo(1.25, 0);
-          spoilerShape.lineTo(0.9, 0.6);
-          spoilerShape.lineTo(-1.1, 0.6);
-          spoilerShape.closePath();
-          const spoilerGeo = new THREE.ExtrudeGeometry(spoilerShape, { depth: 2.25, bevelEnabled: true, bevelSize: 0.05 });
-          const spoilerMesh = new THREE.Mesh(spoilerGeo, whitePaintMat);
-          spoilerMesh.rotation.y = Math.PI / 2;
-          spoilerMesh.position.set(-1.12, 3.55, -1.12);
-          cabGroup.add(spoilerMesh);
+            // Roof Deflector Spoiler
+            const spoilerShape = new THREE.Shape();
+            spoilerShape.moveTo(-1.25, 0);
+            spoilerShape.lineTo(1.25, 0);
+            spoilerShape.lineTo(0.9, 0.6);
+            spoilerShape.lineTo(-1.1, 0.6);
+            spoilerShape.closePath();
+            const spoilerGeo = new THREE.ExtrudeGeometry(spoilerShape, { depth: 2.25, bevelEnabled: true, bevelSize: 0.05 });
+            const spoilerMesh = new THREE.Mesh(spoilerGeo, whitePaintMat);
+            spoilerMesh.rotation.y = Math.PI / 2;
+            spoilerMesh.position.set(-1.12, 3.55, -1.12);
+            cabGroup.add(spoilerMesh);
 
-          // Windshield
-          const glassGeo = new THREE.BoxGeometry(0.08, 1.1, 2.1);
-          const glassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.85 });
-          const glass = new THREE.Mesh(glassGeo, glassMat);
-          glass.position.set(-1.26, 2.65, 0);
-          cabGroup.add(glass);
+            // Windshield
+            const glassGeo = new THREE.BoxGeometry(0.08, 1.1, 2.1);
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.85 });
+            const glass = new THREE.Mesh(glassGeo, glassMat);
+            glass.position.set(-1.26, 2.65, 0);
+            cabGroup.add(glass);
 
-          // Wiper Blades
-          const wiperMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
-          [-0.5, 0.4].forEach(zPos => {
-            const wiper = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.7, 0.05), wiperMat);
-            wiper.rotation.z = -0.3;
-            wiper.position.set(-1.29, 2.5, zPos);
-            cabGroup.add(wiper);
-          });
+            // Wiper Blades
+            const wiperMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+            [-0.5, 0.4].forEach(zPos => {
+              const wiper = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.7, 0.05), wiperMat);
+              wiper.rotation.z = -0.3;
+              wiper.position.set(-1.29, 2.5, zPos);
+              cabGroup.add(wiper);
+            });
 
-          // Door decals
-          const doorDecalMat = new THREE.MeshStandardMaterial({ map: doorTexture, roughness: 0.3 });
-          const leftDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
-          leftDoor.rotation.y = Math.PI / 2;
-          leftDoor.position.set(0.1, 2.1, 1.16);
-          cabGroup.add(leftDoor);
+            // Door decals
+            const doorDecalMat = new THREE.MeshStandardMaterial({ map: doorTexture, roughness: 0.3 });
+            const leftDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
+            leftDoor.rotation.y = Math.PI / 2;
+            leftDoor.position.set(0.1, 2.1, 1.16);
+            cabGroup.add(leftDoor);
 
-          const rightDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
-          rightDoor.rotation.y = -Math.PI / 2;
-          rightDoor.position.set(0.1, 2.1, -1.16);
-          cabGroup.add(rightDoor);
+            const rightDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
+            rightDoor.rotation.y = -Math.PI / 2;
+            rightDoor.position.set(0.1, 2.1, -1.16);
+            cabGroup.add(rightDoor);
 
-          // VW Grille with Chrome Emblem
-          const grillePlaneGeo = new THREE.PlaneGeometry(1.0, 2.1);
-          const vwGrilleMat = new THREE.MeshStandardMaterial({ map: vwGrilleTexture, roughness: 0.3 });
-          const grilleMesh = new THREE.Mesh(grillePlaneGeo, vwGrilleMat);
-          grilleMesh.rotation.y = -Math.PI / 2;
-          grilleMesh.position.set(-1.26, 1.45, 0);
-          cabGroup.add(grilleMesh);
+            // VW Grille with Chrome Emblem
+            const grillePlaneGeo = new THREE.PlaneGeometry(1.0, 2.1);
+            const vwGrilleMat = new THREE.MeshStandardMaterial({ map: vwGrilleTexture, roughness: 0.3 });
+            const grilleMesh = new THREE.Mesh(grillePlaneGeo, vwGrilleMat);
+            grilleMesh.rotation.y = -Math.PI / 2;
+            grilleMesh.position.set(-1.26, 1.45, 0);
+            cabGroup.add(grilleMesh);
 
-          // Headlights
-          const headlightMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfef08a, emissiveIntensity: 0.5 });
-          [-0.85, 0.85].forEach(zPos => {
-            const hl = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.25, 0.35), headlightMat);
-            hl.position.set(-1.26, 1.05, zPos);
-            cabGroup.add(hl);
-          });
+            // Headlights
+            const headlightMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfef08a, emissiveIntensity: 0.5 });
+            [-0.85, 0.85].forEach(zPos => {
+              const hl = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.25, 0.35), headlightMat);
+              hl.position.set(-1.26, 1.05, zPos);
+              cabGroup.add(hl);
+            });
 
-          // Mirrors
-          [-1.22, 1.22].forEach(zPos => {
-            const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.15), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 }));
-            mirror.position.set(-0.8, 2.6, zPos);
-            cabGroup.add(mirror);
-          });
+            // Mirrors
+            [-1.22, 1.22].forEach(zPos => {
+              const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.15), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 }));
+              mirror.position.set(-0.8, 2.6, zPos);
+              cabGroup.add(mirror);
+            });
 
-          // Chrome Fuel Tanks
-          const tankGeo = new THREE.CylinderGeometry(0.42, 0.42, 1.8, 24);
-          const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 });
-          [-1.18, 1.18].forEach(zPos => {
-            const tank = new THREE.Mesh(tankGeo, chromeMat);
-            tank.rotation.z = Math.PI / 2;
-            tank.position.set(0.6, 0.55, zPos);
-            cabGroup.add(tank);
-          });
+            // Chrome Fuel Tanks
+            const tankGeo = new THREE.CylinderGeometry(0.42, 0.42, 1.8, 24);
+            const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 });
+            [-1.18, 1.18].forEach(zPos => {
+              const tank = new THREE.Mesh(tankGeo, chromeMat);
+              tank.rotation.z = Math.PI / 2;
+              tank.position.set(0.6, 0.55, zPos);
+              cabGroup.add(tank);
+            });
 
-          group.add(cabGroup);
+            group.add(cabGroup);
 
-          // Trailer Group
-          const trailerGroup = new THREE.Group();
-          trailerGroup.position.set(2.8, 0, 0);
+            // Trailer Group
+            const trailerGroup = new THREE.Group();
+            trailerGroup.position.set(2.8, 0, 0);
 
-          const sideMat = new THREE.MeshStandardMaterial({ map: trailerSideTexture, roughness: 0.35, metalness: 0.15 });
-          const roofMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.3, roughness: 0.3 });
-          const frontMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
-          const rearMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.2 });
+            const sideMat = new THREE.MeshStandardMaterial({ map: trailerSideTexture, roughness: 0.35, metalness: 0.15 });
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.3, roughness: 0.3 });
+            const frontMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+            const rearMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.2 });
 
-          const boxMaterials = [sideMat, sideMat, roofMat, frontMat, frontMat, rearMat];
-          const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(11.5, 3.6, 2.6), boxMaterials);
-          boxMesh.position.set(0, 2.65, 0);
-          boxMesh.castShadow = true;
-          boxMesh.receiveShadow = true;
-          trailerGroup.add(boxMesh);
+            const boxMaterials = [sideMat, sideMat, roofMat, frontMat, frontMat, rearMat];
+            const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(11.5, 3.6, 2.6), boxMaterials);
+            boxMesh.position.set(0, 2.65, 0);
+            boxMesh.castShadow = true;
+            boxMesh.receiveShadow = true;
+            trailerGroup.add(boxMesh);
 
-          // Frame Rails
-          const frameMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.15 });
-          const eTopL = new THREE.Mesh(new THREE.BoxGeometry(11.55, 0.12, 0.12), frameMat);
-          eTopL.position.set(0, 4.46, 1.31);
-          trailerGroup.add(eTopL);
-          const eTopR = new THREE.Mesh(new THREE.BoxGeometry(11.55, 0.12, 0.12), frameMat);
-          eTopR.position.set(0, 4.46, -1.31);
-          trailerGroup.add(eTopR);
+            // Frame Rails
+            const frameMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.15 });
+            const eTopL = new THREE.Mesh(new THREE.BoxGeometry(11.55, 0.12, 0.12), frameMat);
+            eTopL.position.set(0, 4.46, 1.31);
+            trailerGroup.add(eTopL);
+            const eTopR = new THREE.Mesh(new THREE.BoxGeometry(11.55, 0.12, 0.12), frameMat);
+            eTopR.position.set(0, 4.46, -1.31);
+            trailerGroup.add(eTopR);
 
-          // Thermo King Unit
-          const acBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 2.1), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 }));
-          acBody.position.set(-5.8, 3.1, 0);
-          trailerGroup.add(acBody);
+            // Thermo King Unit
+            const acBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 2.1), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 }));
+            acBody.position.set(-5.8, 3.1, 0);
+            trailerGroup.add(acBody);
 
-          const ledDisplay = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.25, 0.5), new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.8 }));
-          ledDisplay.position.set(-5.78, 2.7, 0);
-          trailerGroup.add(ledDisplay);
+            const ledDisplay = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.25, 0.5), new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.8 }));
+            ledDisplay.position.set(-5.78, 2.7, 0);
+            trailerGroup.add(ledDisplay);
 
-          group.add(trailerGroup);
+            group.add(trailerGroup);
 
-          // Wheel Assemblies
-          const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.45, 32);
-          const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.85 });
-          const rimMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.9, roughness: 0.1 });
+            // Wheel Assemblies
+            const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.45, 32);
+            const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.85 });
+            const rimMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.9, roughness: 0.1 });
 
-          const wheelPositions = [
-            [-5.3, 0.55, 1.15], [-5.3, 0.55, -1.15],
-            [-3.3, 0.55, 1.15], [-3.3, 0.55, -1.15],
-            [-2.1, 0.55, 1.15], [-2.1, 0.55, -1.15],
-            [4.2, 0.55, 1.25], [4.2, 0.55, -1.25],
-            [5.6, 0.55, 1.25], [5.6, 0.55, -1.25],
-            [7.0, 0.55, 1.25], [7.0, 0.55, -1.25]
-          ];
+            const wheelPositions = [
+              [-5.3, 0.55, 1.15], [-5.3, 0.55, -1.15],
+              [-3.3, 0.55, 1.15], [-3.3, 0.55, -1.15],
+              [-2.1, 0.55, 1.15], [-2.1, 0.55, -1.15],
+              [4.2, 0.55, 1.25], [4.2, 0.55, -1.25],
+              [5.6, 0.55, 1.25], [5.6, 0.55, -1.25],
+              [7.0, 0.55, 1.25], [7.0, 0.55, -1.25]
+            ];
 
-          wheelPositions.forEach(([x, y, z]) => {
-            const tire = new THREE.Mesh(wheelGeo, tireMat);
-            tire.rotation.x = Math.PI / 2;
-            tire.position.set(x, y, z);
-            const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.47, 16), rimMat);
-            rim.rotation.x = Math.PI / 2;
-            rim.position.set(x, y, z);
-            group.add(tire);
-            group.add(rim);
-          });
+            wheelPositions.forEach(([x, y, z]) => {
+              const tire = new THREE.Mesh(wheelGeo, tireMat);
+              tire.rotation.x = Math.PI / 2;
+              tire.position.set(x, y, z);
+              const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.47, 16), rimMat);
+              rim.rotation.x = Math.PI / 2;
+              rim.position.set(x, y, z);
+              group.add(tire);
+              group.add(rim);
+            });
 
-        } else if (activeCompany.transportType === 'ship') {
-          const hull = new THREE.Mesh(new THREE.BoxGeometry(10, 1.8, 3), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-          hull.position.set(0, 0.9, 0);
-          group.add(hull);
-          const bridge = new THREE.Mesh(new THREE.BoxGeometry(2, 3.5, 2.4), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
-          bridge.position.set(-3.5, 3.2, 0);
-          group.add(bridge);
-        } else {
-          const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 10, 16), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
-          fuselage.rotation.z = Math.PI / 2;
-          fuselage.position.set(0, 2, 0);
-          group.add(fuselage);
+          } else if (activeCompany.transportType === 'ship') {
+            const hull = new THREE.Mesh(new THREE.BoxGeometry(10, 1.8, 3), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+            hull.position.set(0, 0.9, 0);
+            group.add(hull);
+            const bridge = new THREE.Mesh(new THREE.BoxGeometry(2, 3.5, 2.4), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
+            bridge.position.set(-3.5, 3.2, 0);
+            group.add(bridge);
+          } else {
+            const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 10, 16), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
+            fuselage.rotation.z = Math.PI / 2;
+            fuselage.position.set(0, 2, 0);
+            group.add(fuselage);
+          }
         }
 
         // Mouse hover rotation
@@ -808,10 +812,19 @@
 
         const domEl = renderer.domElement;
 
-        domEl.addEventListener('mousemove', (e) => {
+        const onPointerMove = (e) => {
           const rect = container.getBoundingClientRect();
           const mouseX = e.clientX - rect.left;
           const mouseY = e.clientY - rect.top;
+
+          if (activeCompany.id === 'frigorifico-silva') {
+             // For 2D React state tilt
+             const centerX = rect.width / 2;
+             const centerY = rect.height / 2;
+             const tiltX = -((mouseY - centerY) / centerY) * 12;
+             const tiltY = ((mouseX - centerX) / centerX) * 12;
+             setTilt({ x: tiltX, y: tiltY });
+          }
 
           if (lastMouseX !== 0) {
             const deltaX = mouseX - lastMouseX;
@@ -822,26 +835,25 @@
           }
           lastMouseX = mouseX;
           lastMouseY = mouseY;
-        });
+        };
+
+        domEl.addEventListener('mouseenter', () => setIsHovering(true));
+        
+        domEl.addEventListener('mousemove', onPointerMove);
 
         domEl.addEventListener('mouseleave', () => {
           lastMouseX = 0;
           lastMouseY = 0;
+          setIsHovering(false);
+          if (activeCompany.id === 'frigorifico-silva') {
+            setTilt({ x: 0, y: 0 });
+          }
         });
 
         domEl.addEventListener('touchmove', (e) => {
           if (e.touches && e.touches.length > 0) {
             const touch = e.touches[0];
-            const rect = container.getBoundingClientRect();
-            const mouseX = touch.clientX - rect.left;
-            const mouseY = touch.clientY - rect.top;
-            if (lastMouseX !== 0) {
-              group.rotation.y += (mouseX - lastMouseX) * 0.008;
-              group.rotation.x += (mouseY - lastMouseY) * 0.004;
-              group.rotation.x = Math.max(-0.4, Math.min(0.4, group.rotation.x));
-            }
-            lastMouseX = mouseX;
-            lastMouseY = mouseY;
+            onPointerMove(touch);
           }
         });
 
@@ -871,10 +883,42 @@
             <span className="badge badge-cyan" style={{ backdropFilter: 'blur(8px)' }}>✨ Three.js WebGL 3D</span>
             <span style={{ marginLeft: 8, fontSize: '0.75rem', color: '#94a3b8', background: 'rgba(15,23,42,0.7)', padding: '4px 10px', borderRadius: 20 }}>💡 Passe o mouse para girar o veículo em 360°</span>
           </div>
-          <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
+          
+          <div ref={mountRef} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
+
+          {/* 2D Image Interactive Overlay (Tilt Effect) */}
+          {activeCompany.id === 'frigorifico-silva' && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+              perspective: '1200px',
+              zIndex: 5
+            }}>
+              <img 
+                src="public/truck-bestbeef.png" 
+                alt="Frigorífico Silva Truck" 
+                style={{
+                  maxWidth: '90%',
+                  maxHeight: '80%',
+                  objectFit: 'contain',
+                  transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${isHovering ? 1.05 : 1.0})`,
+                  transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out',
+                  filter: 'drop-shadow(0px 20px 30px rgba(0,0,0,0.5))'
+                }}
+              />
+            </div>
+          )}
         </div>
       );
     }
+
 
     // 3D Virtual Container Interior Plan Component
     function ContainerPlan3D({ activeCompany }) {
