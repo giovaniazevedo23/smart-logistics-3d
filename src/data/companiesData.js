@@ -1,0 +1,187 @@
+export const COMPANIES_DATA = [
+  {
+    id: 'coldchain-express',
+    name: 'ColdChain Express Solutions',
+    badge: 'Cadeia de Frio Farmacêutica & Alimentar',
+    logo: '❄️',
+    color: '#00f2fe',
+    rating: 4.9,
+    tripsCompleted: 1420,
+    transportType: 'truck',
+    transportName: 'Caminhão Frigorífico Volvo FH 540',
+    modelSpec: 'ThermoKing Sentinel Ultra - Baú Tripla Isolamento',
+    capacity: '28 Toneladas / 30 Paletes',
+    cargoName: 'Vacinas RNAm & Insulina de Alta Pureza',
+    cargoSku: 'VAC-2026-NEXUS',
+    targetTempMin: -22.0,
+    targetTempMax: -18.0,
+    currentTemp: -19.8,
+    humidity: 45,
+    origin: 'São Paulo, SP (Hub BioTech)',
+    destination: 'Curitiba, PR (Centro de Distribuição Sul)',
+    routeDistance: '408 km',
+    elapsedTime: '03:45:00',
+    eta: '01:15:00',
+    progress: 75,
+    speed: 78,
+    status: 'Em Trânsito - Seguro',
+    containerLayout: {
+      totalPallets: 12,
+      zones: [
+        { name: 'Zona Dianteira (Evaporador)', item: 'Lote 01: Insulina Humana Recombinante', pallets: 4, temp: -20.2, status: 'Ideal' },
+        { name: 'Zona Central (Coração do Baú)', item: 'Lote 02: Vacinas RNAm Ultracongeladas', pallets: 4, temp: -19.8, status: 'Ideal' },
+        { name: 'Zona Traseira (Portas de Carga)', item: 'Lote 03: Kits de Reagentes de Laboratório', pallets: 4, temp: -18.9, status: 'Monitorar' }
+      ]
+    },
+    aiForecast: {
+      riskScore: '12%',
+      riskLevel: 'Baixo Risco',
+      insights: [
+        'Pressão do compressor ThermoKing mantida com estabilidade de 99.4%.',
+        'Variação térmica acumulada ao abrir porta em parada prévia: +0.6°C (compensada em 4 min).'
+      ],
+      preventivePlans: [
+        'Manter ciclos de refrigeração no modo contínuo até a entrega em Curitiba.',
+        'Realizar calibração preventiva do sensor NTC 03 antes do percurso de retorno.'
+      ]
+    }
+  },
+  {
+    id: 'oceanic-intermodal',
+    name: 'Oceanic Intermodal Global',
+    badge: 'Transporte Marítimo Transoceânico',
+    logo: '⚓',
+    color: '#3b82f6',
+    rating: 4.8,
+    tripsCompleted: 890,
+    transportType: 'ship',
+    transportName: 'Navio Porta-Contêineres Everest Sentinel',
+    modelSpec: 'Neopanamax 14.000 TEU com Tomadas Reefer Inteligentes',
+    capacity: '14.000 TEU / 85.000 Toneladas',
+    cargoName: 'Frutas Frescas & Cargas Frigorificadas Premium',
+    cargoSku: 'FRU-EXP-OCEAN-88',
+    targetTempMin: 2.0,
+    targetTempMax: 4.0,
+    currentTemp: 3.1,
+    humidity: 85,
+    origin: 'Porto de Santos, SP',
+    destination: 'Porto de Roterdã, Holanda',
+    routeDistance: '9.820 MN',
+    elapsedTime: '12 Dias, 08 Horas',
+    eta: '03 Dias, 14 Horas',
+    progress: 78,
+    speed: 22, // nós
+    status: 'Navegação Internacional em Rota',
+    containerLayout: {
+      totalPallets: 24,
+      zones: [
+        { name: 'Bordo Bombordo', item: 'Contêiner R-102: Uvas e Mangas Exportação', pallets: 8, temp: 3.0, status: 'Excelente' },
+        { name: 'Centro de Porão', item: 'Contêiner R-104: Carnes In Natura Resfriadas', pallets: 8, temp: 2.8, status: 'Excelente' },
+        { name: 'Bordo Estibordo', item: 'Contêiner R-109: Polpas de Frutas Tropicais', pallets: 8, temp: 3.4, status: 'Estável' }
+      ]
+    },
+    aiForecast: {
+      riskScore: '24%',
+      riskLevel: 'Risco Moderado',
+      insights: [
+        'Frente fria com ondas de 3.5m detectada no Atlântico Norte (Sem impacto no sistema de refrigeração).',
+        'Sensores IoT de umidade relativa indicam estabilidade em 85%.'
+      ],
+      preventivePlans: [
+        'Reforçar peação dos contêineres do convés superior devido à ondulação.',
+        'Ativar rotina de desgaseificação de etileno nas últimas 48 horas de navegação.'
+      ]
+    }
+  },
+  {
+    id: 'aerocargo-express',
+    name: 'AeroCargo Express International',
+    badge: 'Frete Aéreo Crítico de Alta Velocidade',
+    logo: '✈️',
+    color: '#8b5cf6',
+    rating: 5.0,
+    tripsCompleted: 2150,
+    transportType: 'plane',
+    transportName: 'Boeing 777F Freighter Ultra Cargo',
+    modelSpec: 'Compartimento Inferior Climatizado Activo Environtainer',
+    capacity: '102 Toneladas Pague-Junto',
+    cargoName: 'Equipamentos Médicos de Precisão & Soro Especial',
+    cargoSku: 'AERO-MED-990X',
+    targetTempMin: 15.0,
+    targetTempMax: 22.0,
+    currentTemp: 18.5,
+    humidity: 40,
+    origin: 'Aeroporto Viracopos, Campinas (VCP)',
+    destination: 'Aeroporto Frankfurt, Alemanha (FRA)',
+    routeDistance: '9.500 km',
+    elapsedTime: '07h 40m',
+    eta: '02h 10m',
+    progress: 82,
+    speed: 880, // km/h
+    status: 'Voo de Cruzeiro - Altitude FL370',
+    containerLayout: {
+      totalPallets: 8,
+      zones: [
+        { name: 'Palete Aéreo ULD 01', item: 'Scanners de Ressonância Magnética', pallets: 3, temp: 18.2, status: 'Perfeito' },
+        { name: 'Palete Aéreo ULD 02', item: 'Componentes Ópticos Laser de Hospital', pallets: 3, temp: 18.5, status: 'Perfeito' },
+        { name: 'Palete Aéreo ULD 03', item: 'Kits Biológicos em Palete Ativo RKN', pallets: 2, temp: 17.8, status: 'Perfeito' }
+      ]
+    },
+    aiForecast: {
+      riskScore: '5%',
+      riskLevel: 'Mínimo',
+      insights: [
+        'Pressão de cabine mantida em 8.000 ft equivalente com variação de temperatura < 0.2°C.',
+        'Zero turbulência severa reportada na rota aérea transatlântica.'
+      ],
+      preventivePlans: [
+        'Prioridade de descarga rápida e transferência direta para câmara fria no Hangar 4 de Frankfurt.'
+      ]
+    }
+  },
+  {
+    id: 'transrail-heavy',
+    name: 'TransRail Heavy Freight',
+    badge: 'Ferrovia e Cargas Pesadas de Volume',
+    logo: '🚂',
+    color: '#10b981',
+    rating: 4.7,
+    tripsCompleted: 610,
+    transportType: 'train',
+    transportName: 'Locomotiva Eletrodiesel GE Evolution Series',
+    modelSpec: '80 Vagões Fechados Tipo Boxcar Climatizados',
+    capacity: '6.400 Toneladas',
+    cargoName: 'Grãos Especiais & Insumos Agrícolas Processados',
+    cargoSku: 'RAIL-GRAIN-773',
+    targetTempMin: 18.0,
+    targetTempMax: 26.0,
+    currentTemp: 22.4,
+    humidity: 55,
+    origin: 'Rondonópolis, MT',
+    destination: 'Porto de Paranaguá, PR',
+    routeDistance: '1.450 km',
+    elapsedTime: '28 Horas',
+    eta: '06 Horas',
+    progress: 82,
+    speed: 55, // km/h
+    status: 'Em Trânsito Ferroviário',
+    containerLayout: {
+      totalPallets: 40,
+      zones: [
+        { name: 'Vagão 01 a 20', item: 'Soja em Grãos Selecionados para Exportação', pallets: 20, temp: 22.1, status: 'Normal' },
+        { name: 'Vagão 21 a 40', item: 'Farelo Enriquecido Climatizado em BigBags', pallets: 20, temp: 22.7, status: 'Normal' }
+      ]
+    },
+    aiForecast: {
+      riskScore: '18%',
+      riskLevel: 'Baixo Risco',
+      insights: [
+        'Vibração de trilho mantida dentro das especificações de amortecimento pneumático.',
+        'Sensoriamento de umidade nos vagões sem indícios de infiltração.'
+      ],
+      preventivePlans: [
+        'Vistoria nos engates pneumáticos no Pátio de Manobra de Bauru.'
+      ]
+    }
+  }
+];
