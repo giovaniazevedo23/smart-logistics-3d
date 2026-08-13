@@ -12,14 +12,29 @@ const EQUIPMENTS = [
   { id: 'sensor_ble', name: 'Sensor de Temperatura BLE IoT', price: 120.00, desc: 'Telemetria em tempo real pelo celular.' }
 ];
 
-const BASE_FREIGHT = 150.00; // Base cost for Fiorino run
+const FLEET = [
+  { id: 'fiorino', name: 'Fiorino Refrigerada', capacity: 1000, price: 150.00 },
+  { id: 'vuc', name: 'VUC Urbano', capacity: 2500, price: 250.00 },
+  { id: 'hr', name: 'Caminhão HR', capacity: 4000, price: 350.00 }
+];
 
 export default function StoreTab({ storeResult, setStoreResult, setActiveTab, isLocked }) {
   const [cart, setCart] = useState(storeResult?.cart || {});
+  const [fleetCart, setFleetCart] = useState(storeResult?.fleetCart || { fiorino: 1 });
   const [hasInsurance, setHasInsurance] = useState(storeResult?.hasInsurance || false);
   
+  const totalBreads = PRODUCTS.reduce((sum, p) => sum + p.qty, 0);
   const productTotalValue = PRODUCTS.reduce((sum, p) => sum + (p.qty * p.unitValue), 0);
   const insuranceFee = productTotalValue * 0.20;
+
+  const handleAddFleet = (vId, change) => {
+    if (isLocked) return;
+    setFleetCart(prev => {
+      const current = prev[vId] || 0;
+      const next = Math.max(0, current + change);
+      return { ...prev, [vId]: next };
+    });
+  };
   
   const handleAddToCart = (eqId, change) => {
     if (isLocked) return;
@@ -36,17 +51,35 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       const eq = EQUIPMENTS.find(e => e.id === id);
       if (eq) equipTotal += eq.price * qty;
     });
-    const finalTotal = BASE_FREIGHT + equipTotal + (hasInsurance ? insuranceFee : 0);
-    return { equipTotal, finalTotal };
+
+    let fleetTotal = 0;
+    let fleetCapacity = 0;
+    Object.entries(fleetCart).forEach(([id, qty]) => {
+      const v = FLEET.find(v => v.id === id);
+      if (v) {
+        fleetTotal += v.price * qty;
+        fleetCapacity += v.capacity * qty;
+      }
+    });
+
+    const finalTotal = fleetTotal + equipTotal + (hasInsurance ? insuranceFee : 0);
+    return { equipTotal, fleetTotal, fleetCapacity, finalTotal };
   };
 
-  const { equipTotal, finalTotal } = calculateTotal();
+  const { equipTotal, fleetTotal, fleetCapacity, finalTotal } = calculateTotal();
+  const capacityPct = Math.min(100, (fleetCapacity / totalBreads) * 100);
+  const isCapacityMet = fleetCapacity >= totalBreads;
 
   const handleSave = () => {
+    if (!isCapacityMet) {
+      alert("Atenção: A capacidade da frota escolhida é menor que a quantidade total de pães (2.194 un). Adicione mais veículos.");
+      return;
+    }
     setStoreResult({
       cart,
+      fleetCart,
       hasInsurance,
-      totals: { equipTotal, finalTotal, baseFreight: BASE_FREIGHT, insuranceFee: hasInsurance ? insuranceFee : 0 }
+      totals: { equipTotal, finalTotal, baseFreight: fleetTotal, insuranceFee: hasInsurance ? insuranceFee : 0 }
     });
     // Move para a proxima aba automaticamente
     setActiveTab('questionnaire');
@@ -87,6 +120,62 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                   <div className="font-bold text-brand-secondary">{p.qty} un</div>
                 </div>
               ))}
+            </div>
+
+            {/* Veiculos de Frota */}
+            <div className="mt-6 border-t border-slate-700 pt-6">
+              <h4 className="font-bold text-slate-200 mb-4">Dimensionamento de Frota (Múltiplos Veículos)</h4>
+              <p className="text-sm text-slate-400 mb-4">Escolha a frota necessária para suprir a demanda de <strong>{totalBreads} pães</strong>.</p>
+              
+              <div className="space-y-3 mb-6">
+                {FLEET.map(v => {
+                  const qty = fleetCart[v.id] || 0;
+                  return (
+                    <div key={v.id} className="bg-slate-900 border border-slate-700 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <strong className="text-slate-200 block">{v.name}</strong>
+                        <span className="text-xs text-brand-secondary">Capacidade: {v.capacity} pães</span>
+                        <span className="text-emerald-400 font-bold ml-4">R$ {v.price.toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 bg-slate-800 p-2 rounded-lg border border-slate-600">
+                        <button 
+                          type="button"
+                          onClick={() => handleAddFleet(v.id, -1)}
+                          disabled={isLocked || qty === 0}
+                          className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-md disabled:opacity-50"
+                        >
+                          -
+                        </button>
+                        <span className="w-6 text-center font-bold text-white">{qty}</span>
+                        <button 
+                          type="button"
+                          onClick={() => handleAddFleet(v.id, 1)}
+                          disabled={isLocked}
+                          className="w-8 h-8 flex items-center justify-center bg-brand-primary hover:bg-amber-400 text-brand-dark font-bold rounded-md disabled:opacity-50"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Capacity Bar */}
+              <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-slate-300">Capacidade da Frota: <strong className={isCapacityMet ? 'text-emerald-400' : 'text-rose-400'}>{fleetCapacity} / {totalBreads} un</strong></span>
+                  {isCapacityMet ? (
+                    <span className="text-emerald-400 flex items-center gap-1 font-bold"><CheckCircle2 size={16}/> Suficiente</span>
+                  ) : (
+                    <span className="text-rose-400 font-bold">Capacidade Insuficiente</span>
+                  )}
+                </div>
+                <div className="w-full bg-slate-800 rounded-full h-2.5">
+                  <div className={`h-2.5 rounded-full ${isCapacityMet ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${capacityPct}%` }}></div>
+                </div>
+              </div>
             </div>
 
             {/* Seguro Adicional */}
@@ -163,9 +252,20 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
             
             <div className="space-y-4 mb-6 text-sm">
               <div className="flex justify-between items-center text-slate-300">
-                <span>Custo Base Frete (Utilitário):</span>
-                <span className="font-semibold">R$ {BASE_FREIGHT.toFixed(2)}</span>
+                <span className="font-bold">Custo de Frota:</span>
+                <span className="font-semibold">R$ {fleetTotal.toFixed(2)}</span>
               </div>
+              {Object.entries(fleetCart).map(([id, qty]) => {
+                if (qty === 0) return null;
+                const v = FLEET.find(x => x.id === id);
+                return (
+                  <div key={id} className="flex justify-between items-center text-slate-500 pl-2">
+                    <span className="truncate pr-4">{qty}x {v.name}</span>
+                    <span>R$ {(v.price * qty).toFixed(2)}</span>
+                  </div>
+                );
+              })}
+              <div className="border-b border-slate-700 pb-2"></div>
               
               {Object.entries(cart).map(([id, qty]) => {
                 if (qty === 0) return null;

@@ -5,6 +5,7 @@ import FleetManager from './FleetManager';
 import LightTelemetry from './LightTelemetry';
 import LiveMapRoute from './LiveMapRoute';
 import AiContextPanel from './AiContextPanel';
+import MethodologyManual from './MethodologyManual';
 import { DELIVERY_NODES, FLEET_VEHICLES, CURRENT_TRIP } from '../data/bakeryData';
 
 export default function TrackingTab({ onLock, onReset }) {
@@ -16,6 +17,7 @@ export default function TrackingTab({ onLock, onReset }) {
   const [isAlert, setIsAlert] = useState(false);
   const [showGeofence, setShowGeofence] = useState(false);
   const [toast, setToast] = useState({ visible: false, title: '', message: '' });
+  const [showManual, setShowManual] = useState(false);
 
   const showToast = (title, message) => {
     setToast({ visible: true, title, message });
@@ -112,6 +114,16 @@ export default function TrackingTab({ onLock, onReset }) {
         <AiContextPanel currentNodeIndex={currentNodeIndex} />
       </div>
 
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-white">Status da Operação</h2>
+        <button 
+          onClick={() => setShowManual(true)}
+          className="bg-brand-secondary/20 hover:bg-brand-secondary/40 text-brand-secondary border border-brand-secondary/50 font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+        >
+          📘 Ver Manual de Carregamento (C.A.S.A)
+        </button>
+      </div>
+
       <LiveMapRoute 
         currentNodeIndex={currentNodeIndex}
         stepStatus={stepStatus}
@@ -174,6 +186,10 @@ export default function TrackingTab({ onLock, onReset }) {
            🔄 Reiniciar Ciclo de Entrega
          </button>
       </div>
+
+      {showManual && (
+        <MethodologyManual onClose={() => setShowManual(false)} />
+      )}
     </div>
   );
 }
