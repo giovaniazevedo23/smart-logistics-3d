@@ -3,6 +3,7 @@ import { Package, BellRing } from 'lucide-react';
 import BakeryDashboard from './BakeryDashboard';
 import FleetManager from './FleetManager';
 import LightTelemetry from './LightTelemetry';
+import LiveMapRoute from './LiveMapRoute';
 import { DELIVERY_NODES, FLEET_VEHICLES, CURRENT_TRIP } from '../data/bakeryData';
 
 export default function TrackingTab() {
@@ -81,6 +82,11 @@ export default function TrackingTab() {
           </div>
         </div>
       )}
+
+      <LiveMapRoute 
+        currentNodeIndex={currentNodeIndex}
+        stepStatus={stepStatus}
+      />
 
       <BakeryDashboard 
         nodes={DELIVERY_NODES} 

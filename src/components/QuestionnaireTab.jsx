@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { ClipboardCheck, ShieldAlert, CheckCircle2, Truck, Lightbulb, Clock } from 'lucide-react';
+import { ClipboardCheck, ShieldAlert, CheckCircle2, Truck, Lightbulb, Clock, Map, MapPin } from 'lucide-react';
 
 export default function QuestionnaireTab({ setQuestionnaireResult, setActiveTab }) {
   const [answers, setAnswers] = useState({
+    origem: 'Centro de Distribuição (Polo Industrial)',
+    destino: 'Filiais Bella THE (Teresina-PI)',
     demanda: 'padrao',
     acondicionamento: 'aprovado',
     conservacao: 'opcao_a',
@@ -66,6 +68,38 @@ export default function QuestionnaireTab({ setQuestionnaireResult, setActiveTab 
       {!result ? (
         <form onSubmit={handleSubmit} className="space-y-8">
           
+          {/* ETAPA 0 */}
+          <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
+            <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2 flex items-center gap-2">
+              <Map size={20} className="text-amber-400" /> Etapa 0: Configuração Geográfica (Rota)
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="font-semibold mb-2 text-sm text-slate-200 block">Endereço de Origem (CD):</label>
+                <input 
+                  type="text" 
+                  value={answers.origem} 
+                  onChange={(e) => handleChange('origem', e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-300 focus:outline-none focus:border-brand-primary transition-colors"
+                  placeholder="Ex: Polo Industrial Sul"
+                  required
+                />
+              </div>
+              <div>
+                <label className="font-semibold mb-2 text-sm text-slate-200 block">Região de Destino (Filiais):</label>
+                <input 
+                  type="text" 
+                  value={answers.destino} 
+                  onChange={(e) => handleChange('destino', e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-300 focus:outline-none focus:border-brand-primary transition-colors"
+                  placeholder="Ex: Teresina - PI"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
           {/* ETAPA 1 */}
           <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
             <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2 flex items-center gap-2">
