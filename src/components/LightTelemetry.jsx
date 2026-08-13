@@ -23,7 +23,7 @@ export default function LightTelemetry({ currentTemp, targetTemp, etaMins, isAle
           </div>
           {isAlert && (
             <div className="mt-3 text-xs text-rose-400 flex items-center justify-center gap-1 bg-rose-900/40 px-2 py-1 rounded">
-              <AlertTriangle size={12} /> Alerta: Perda de Crocância!
+              <AlertTriangle size={12} /> Alerta: Descongelamento da massa!
             </div>
           )}
         </div>
