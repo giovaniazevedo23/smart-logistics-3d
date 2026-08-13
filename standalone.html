@@ -113,6 +113,53 @@
     // Companies Data Mock
     const COMPANIES_DATA = [
       {
+        id: 'frigorifico-silva',
+        name: 'Frigorífico Silva — BestBeef',
+        badge: 'Carreta Frigorífica & Carnes Nores Premium',
+        logo: '🥩',
+        color: '#f59e0b',
+        rating: 5.0,
+        tripsCompleted: 3450,
+        transportType: 'truck',
+        transportName: 'Carreta Frigorífica BestBeef (Frigorífico Silva)',
+        modelSpec: 'Scania R540 6x4 + Baú Frigorífico Tri-Dem Cryovac / ThermoKing',
+        capacity: '28 Toneladas / 28 Paletes de Carnes Resfriadas',
+        cargoName: 'Cortes Bovinos Nobres BestBeef (Embalados a Vácuo Cryovac)',
+        cargoSku: 'BEEF-SILVA-2026',
+        targetTempMin: -2.0,
+        targetTempMax: 2.0,
+        currentTemp: 0.4,
+        humidity: 85,
+        origin: 'Santa Maria, RS (Matriz Frigorífico Silva)',
+        destination: 'São Paulo, SP (Hub Logístico Distribuição)',
+        routeDistance: '1.180 km',
+        elapsedTime: '11:30:00',
+        eta: '02:45:00',
+        progress: 81,
+        speed: 82,
+        status: 'Em Trânsito - Cadeia de Frio Ideal',
+        containerLayout: {
+          totalPallets: 28,
+          zones: [
+            { name: 'Zona Dianteira (ThermoKing Evaporador)', item: 'Cortes Especiais BestBeef (Picanha, Ancho, Chorizo)', pallets: 10, temp: -0.5, status: 'Ideal' },
+            { name: 'Zona Central (Coração do Baú)', item: 'Linha BestBeef Black & Angus Hambúrgueres', pallets: 10, temp: 0.2, status: 'Ideal' },
+            { name: 'Zona Traseira (Portas de Expalação)', item: 'Linha Cryovac Embalados a Vácuo Resfriados', pallets: 8, temp: 0.8, status: 'Monitorar' }
+          ]
+        },
+        aiForecast: {
+          riskScore: '4%',
+          riskLevel: 'Mínimo',
+          insights: [
+            'Temperatura interna do Baú Frigorífico mantida em +0.4°C constantes (Margem ideal para cortes resfriados).',
+            'Vedações de borracha e isolamento em poliuretano expandido Cryovac operando com eficácia máxima de 99.8%.'
+          ],
+          preventivePlans: [
+            'Manter refrigeração ativa em modo contínuo até a doca de desembarque em São Paulo.',
+            'Realizar verificação de rotina do nível do tanque de combustível do motor auxiliar ThermoKing.'
+          ]
+        }
+      },
+      {
         id: 'coldchain-express',
         name: 'ColdChain Express Solutions',
         badge: 'Cadeia de Frio Farmacêutica',
@@ -242,6 +289,236 @@
       }
     ];
 
+    // Procedural Decal Texture Generator for Frigorífico Silva / BestBeef
+    function createRefrigeratedTrailerTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 2048;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#120e0c';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const boardHeight = 64;
+      for (let y = 0; y < canvas.height; y += boardHeight) {
+        const shade = Math.floor(16 + (Math.sin(y) * 0.5 + 0.5) * 12);
+        ctx.fillStyle = `rgb(${shade + 6}, ${shade + 2}, ${shade})`;
+        ctx.fillRect(0, y, canvas.width, boardHeight - 2);
+
+        ctx.fillStyle = '#060504';
+        ctx.fillRect(0, y + boardHeight - 2, canvas.width, 2);
+      }
+
+      const grad = ctx.createRadialGradient(400, 480, 80, 400, 480, 520);
+      grad.addColorStop(0, 'rgba(18, 14, 12, 0.1)');
+      grad.addColorStop(1, 'rgba(8, 6, 5, 0.95)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 880, canvas.height);
+
+      // Bull Head Artwork
+      ctx.save();
+      const bullX = 400;
+      const bullY = 460;
+
+      ctx.fillStyle = '#1a1310';
+      ctx.beginPath();
+      ctx.ellipse(bullX, bullY - 20, 160, 210, -0.1, 0, Math.PI * 2);
+      ctx.fill();
+
+      const headGrad = ctx.createRadialGradient(bullX - 20, bullY - 50, 20, bullX, bullY, 170);
+      headGrad.addColorStop(0, '#8c5332');
+      headGrad.addColorStop(0.4, '#4a2c1b');
+      headGrad.addColorStop(1, '#140e0b');
+      ctx.fillStyle = headGrad;
+      ctx.beginPath();
+      ctx.ellipse(bullX - 10, bullY - 40, 145, 185, -0.1, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#2c1f18';
+      ctx.beginPath();
+      ctx.ellipse(bullX - 15, bullY + 110, 85, 65, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#0c0806';
+      ctx.beginPath();
+      ctx.ellipse(bullX - 45, bullY + 115, 18, 12, -0.2, 0, Math.PI * 2);
+      ctx.ellipse(bullX + 15, bullY + 115, 18, 12, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#d1c7b7';
+      ctx.beginPath();
+      ctx.moveTo(bullX - 110, bullY - 140);
+      ctx.quadraticCurveTo(bullX - 220, bullY - 220, bullX - 170, bullY - 260);
+      ctx.quadraticCurveTo(bullX - 140, bullY - 200, bullX - 90, bullY - 150);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(bullX + 90, bullY - 140);
+      ctx.quadraticCurveTo(bullX + 200, bullY - 220, bullX + 160, bullY - 260);
+      ctx.quadraticCurveTo(bullX + 130, bullY - 200, bullX + 70, bullY - 150);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#080605';
+      ctx.beginPath();
+      ctx.ellipse(bullX - 85, bullY - 45, 16, 12, -0.2, 0, Math.PI * 2);
+      ctx.ellipse(bullX + 65, bullY - 45, 16, 12, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(bullX - 88, bullY - 48, 4, 0, Math.PI * 2);
+      ctx.arc(bullX + 62, bullY - 48, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Green Badge
+      ctx.save();
+      const badgeX = 360;
+      const badgeY = 820;
+      ctx.fillStyle = '#15803d';
+      ctx.beginPath();
+      ctx.arc(badgeX, badgeY, 105, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(badgeX, badgeY, 98, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#166534';
+      ctx.beginPath();
+      ctx.arc(badgeX, badgeY, 90, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#86efac';
+      ctx.beginPath();
+      ctx.moveTo(badgeX - 10, badgeY + 35);
+      ctx.bezierCurveTo(badgeX - 55, badgeY - 20, badgeX - 10, badgeY - 55, badgeX + 25, badgeY - 45);
+      ctx.bezierCurveTo(badgeX + 45, badgeY, badgeX + 15, badgeY + 35, badgeX - 10, badgeY + 35);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 17px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('COMPROMISSO', badgeX, badgeY + 52);
+      ctx.font = 'bold 13px Arial, sans-serif';
+      ctx.fillText('SUSTENTÁVEL', badgeX, badgeY + 70);
+      ctx.restore();
+
+      // Frigorífico Silva Text & Banner
+      const silvaX = 960;
+      const silvaY = 480;
+      ctx.save();
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.moveTo(silvaX, silvaY - 80);
+      ctx.lineTo(silvaX + 80, silvaY - 95);
+      ctx.lineTo(silvaX + 70, silvaY + 30);
+      ctx.lineTo(silvaX - 10, silvaY + 45);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath();
+      ctx.moveTo(silvaX + 40, silvaY - 88);
+      ctx.lineTo(silvaX + 110, silvaY - 100);
+      ctx.lineTo(silvaX + 100, silvaY + 20);
+      ctx.lineTo(silvaX + 30, silvaY + 35);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#16a34a';
+      ctx.beginPath();
+      ctx.moveTo(silvaX + 80, silvaY - 95);
+      ctx.lineTo(silvaX + 140, silvaY - 105);
+      ctx.lineTo(silvaX + 130, silvaY + 10);
+      ctx.lineTo(silvaX + 70, silvaY + 25);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 84px Georgia, serif';
+      ctx.textAlign = 'left';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.fillText('Frigorífico Silva', silvaX + 160, silvaY - 10);
+
+      ctx.font = 'italic 36px Georgia, serif';
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillText('Desde 1972', silvaX + 440, silvaY + 35);
+      ctx.restore();
+
+      // Yellow BestBeef Badge
+      const beefX = 1440;
+      const beefY = 620;
+      ctx.save();
+      ctx.fillStyle = '#facc15';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.roundRect(beefX, beefY - 120, 520, 180, 24);
+      ctx.fill();
+
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#111827';
+      ctx.font = '900 115px "Arial Black", Impact, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('BestBeef', beefX + 260, beefY + 15);
+      ctx.restore();
+
+      // Red CRYOVAC Badge
+      ctx.save();
+      const cryoX = 1860;
+      const cryoY = 870;
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(cryoX, cryoY, 160, 52);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CRYOVAC', cryoX + 80, cryoY + 35);
+      ctx.restore();
+
+      // Reflective Safety Tape
+      const tapeY = canvas.height - 35;
+      const stripeWidth = 60;
+      for (let x = 0; x < canvas.width; x += stripeWidth * 2) {
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(x, tapeY, stripeWidth, 25);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + stripeWidth, tapeY, stripeWidth, 25);
+      }
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function createCabDoorTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.roundRect(90, 200, 332, 115, 18);
+      ctx.fill();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = '900 68px "Arial Black", Impact, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('BestBeef', 256, 282);
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
     // 3D Vehicle Renderer Component
     function Transport3DViewer({ activeCompany }) {
       const mountRef = useRef(null);
@@ -255,44 +532,186 @@
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0f1d);
+        scene.fog = new THREE.FogExp2(0x0a0f1d, 0.025);
 
         const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-        camera.position.set(12, 9, 15);
-        camera.lookAt(0, 1, 0);
+        camera.position.set(16, 7, 19);
+        camera.lookAt(0, 1.5, 0);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(w, h);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        const light1 = new THREE.AmbientLight(0xffffff, 0.8);
+        const light1 = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(light1);
 
         const light2 = new THREE.DirectionalLight(0x00f2fe, 1.5);
-        light2.position.set(10, 20, 10);
+        light2.position.set(20, 30, 20);
+        light2.castShadow = true;
         scene.add(light2);
 
-        const grid = new THREE.GridHelper(30, 30, 0x00f2fe, 0x1e293b);
+        const fillLight = new THREE.DirectionalLight(0x8b5cf6, 0.8);
+        fillLight.position.set(-20, -10, -20);
+        scene.add(fillLight);
+
+        const grid = new THREE.GridHelper(40, 40, 0x00f2fe, 0x1e293b);
+        grid.position.y = -0.01;
         scene.add(grid);
+
+        const groundGeo = new THREE.PlaneGeometry(60, 60);
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x070a13, roughness: 0.8, metalness: 0.2 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
 
         const group = new THREE.Group();
         scene.add(group);
 
-        // Render simple 3D representation
-        const mainColor = new THREE.Color(activeCompany.color);
-        
         if (activeCompany.transportType === 'truck') {
-          // Cabin
-          const cab = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.4, 2.0), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-          cab.position.set(-3.2, 1.2, 0);
-          group.add(cab);
-          // Refrigerator Trailer
-          const box = new THREE.Mesh(new THREE.BoxGeometry(6.8, 3.0, 2.4), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
-          box.position.set(1.4, 1.6, 0);
-          group.add(box);
-          // ThermoKing AC Unit
-          const ac = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.2, 1.8), new THREE.MeshStandardMaterial({ color: mainColor }));
-          ac.position.set(-2.2, 2.1, 0);
-          group.add(ac);
+          const trailerSideTexture = createRefrigeratedTrailerTexture();
+          const doorTexture = createCabDoorTexture();
+
+          // Cab Group
+          const cabGroup = new THREE.Group();
+          cabGroup.position.set(-4.2, 0, 0);
+
+          const cabinGeo = new THREE.BoxGeometry(2.5, 2.7, 2.3);
+          const whitePaintMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.15, metalness: 0.2 });
+          const cabinMesh = new THREE.Mesh(cabinGeo, whitePaintMat);
+          cabinMesh.position.set(0, 2.2, 0);
+          cabinMesh.castShadow = true;
+          cabGroup.add(cabinMesh);
+
+          // Roof Deflector Spoiler
+          const spoilerShape = new THREE.Shape();
+          spoilerShape.moveTo(-1.25, 0);
+          spoilerShape.lineTo(1.25, 0);
+          spoilerShape.lineTo(0.9, 0.6);
+          spoilerShape.lineTo(-1.1, 0.6);
+          spoilerShape.closePath();
+          const spoilerGeo = new THREE.ExtrudeGeometry(spoilerShape, { depth: 2.25, bevelEnabled: true, bevelSize: 0.05 });
+          const spoilerMesh = new THREE.Mesh(spoilerGeo, whitePaintMat);
+          spoilerMesh.rotation.y = Math.PI / 2;
+          spoilerMesh.position.set(-1.12, 3.55, -1.12);
+          cabGroup.add(spoilerMesh);
+
+          // Windshield
+          const glassGeo = new THREE.BoxGeometry(0.08, 1.1, 2.1);
+          const glassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.85 });
+          const glass = new THREE.Mesh(glassGeo, glassMat);
+          glass.position.set(-1.26, 2.65, 0);
+          cabGroup.add(glass);
+
+          // Door decals
+          const doorDecalMat = new THREE.MeshStandardMaterial({ map: doorTexture, roughness: 0.3 });
+          const leftDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
+          leftDoor.rotation.y = Math.PI / 2;
+          leftDoor.position.set(0.1, 2.1, 1.16);
+          cabGroup.add(leftDoor);
+
+          const rightDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
+          rightDoor.rotation.y = -Math.PI / 2;
+          rightDoor.position.set(0.1, 2.1, -1.16);
+          cabGroup.add(rightDoor);
+
+          // Grille
+          const grilleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.4 });
+          const grille = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 2.2), grilleMat);
+          grille.position.set(-1.26, 1.35, 0);
+          cabGroup.add(grille);
+
+          // Headlights
+          const headlightMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfef08a, emissiveIntensity: 0.5 });
+          [-0.85, 0.85].forEach(zPos => {
+            const hl = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.25, 0.35), headlightMat);
+            hl.position.set(-1.26, 1.05, zPos);
+            cabGroup.add(hl);
+          });
+
+          // Mirrors
+          [-1.22, 1.22].forEach(zPos => {
+            const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.15), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 }));
+            mirror.position.set(-0.8, 2.6, zPos);
+            cabGroup.add(mirror);
+          });
+
+          // Chrome Fuel Tanks
+          const tankGeo = new THREE.CylinderGeometry(0.42, 0.42, 1.8, 24);
+          const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 });
+          [-1.18, 1.18].forEach(zPos => {
+            const tank = new THREE.Mesh(tankGeo, chromeMat);
+            tank.rotation.z = Math.PI / 2;
+            tank.position.set(0.6, 0.55, zPos);
+            cabGroup.add(tank);
+          });
+
+          group.add(cabGroup);
+
+          // Trailer Group
+          const trailerGroup = new THREE.Group();
+          trailerGroup.position.set(2.8, 0, 0);
+
+          const sideMat = new THREE.MeshStandardMaterial({ map: trailerSideTexture, roughness: 0.35, metalness: 0.15 });
+          const roofMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.3, roughness: 0.3 });
+          const frontMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+          const rearMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.2 });
+
+          const boxMaterials = [sideMat, sideMat, roofMat, frontMat, frontMat, rearMat];
+          const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(11.5, 3.6, 2.6), boxMaterials);
+          boxMesh.position.set(0, 2.65, 0);
+          boxMesh.castShadow = true;
+          boxMesh.receiveShadow = true;
+          trailerGroup.add(boxMesh);
+
+          // Frame Rails
+          const frameMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.15 });
+          const eTopL = new THREE.Mesh(new THREE.BoxGeometry(11.55, 0.12, 0.12), frameMat);
+          eTopL.position.set(0, 4.46, 1.31);
+          trailerGroup.add(eTopL);
+          const eTopR = new THREE.Mesh(new THREE.BoxGeometry(11.55, 0.12, 0.12), frameMat);
+          eTopR.position.set(0, 4.46, -1.31);
+          trailerGroup.add(eTopR);
+
+          // Thermo King Unit
+          const acBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 2.1), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 }));
+          acBody.position.set(-5.8, 3.1, 0);
+          trailerGroup.add(acBody);
+
+          const ledDisplay = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.25, 0.5), new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.8 }));
+          ledDisplay.position.set(-5.78, 2.7, 0);
+          trailerGroup.add(ledDisplay);
+
+          group.add(trailerGroup);
+
+          // Wheel Assemblies
+          const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.45, 32);
+          const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.85 });
+          const rimMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.9, roughness: 0.1 });
+
+          const wheelPositions = [
+            [-5.3, 0.55, 1.15], [-5.3, 0.55, -1.15],
+            [-3.3, 0.55, 1.15], [-3.3, 0.55, -1.15],
+            [-2.1, 0.55, 1.15], [-2.1, 0.55, -1.15],
+            [4.2, 0.55, 1.25], [4.2, 0.55, -1.25],
+            [5.6, 0.55, 1.25], [5.6, 0.55, -1.25],
+            [7.0, 0.55, 1.25], [7.0, 0.55, -1.25]
+          ];
+
+          wheelPositions.forEach(([x, y, z]) => {
+            const tire = new THREE.Mesh(wheelGeo, tireMat);
+            tire.rotation.x = Math.PI / 2;
+            tire.position.set(x, y, z);
+            const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.47, 16), rimMat);
+            rim.rotation.x = Math.PI / 2;
+            rim.position.set(x, y, z);
+            group.add(tire);
+            group.add(rim);
+          });
+
         } else if (activeCompany.transportType === 'ship') {
           const hull = new THREE.Mesh(new THREE.BoxGeometry(10, 1.8, 3), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
           hull.position.set(0, 0.9, 0);
@@ -310,7 +729,7 @@
         let reqId;
         const animate = () => {
           reqId = requestAnimationFrame(animate);
-          group.rotation.y += 0.006;
+          group.rotation.y += 0.005;
           renderer.render(scene, camera);
         };
         animate();
