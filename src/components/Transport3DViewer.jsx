@@ -31,8 +31,8 @@ export default function Transport3DViewer({ activeCompany }) {
 
     // 2. Camera setup
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(14, 10, 18);
-    camera.lookAt(0, 1, 0);
+    camera.position.set(16, 7, 19);
+    camera.lookAt(0, 1.5, 0);
 
     // 3. Renderer setup
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -243,6 +243,261 @@ export default function Transport3DViewer({ activeCompany }) {
 }
 
 // Procedural 3D Generators for different vehicles using Three.js
+
+// 1. Generate Realistic Frigorífico Silva / BestBeef Side Decal Texture
+function createRefrigeratedTrailerTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2048;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d');
+
+  // Background: Dark Rustic Wood Panels
+  ctx.fillStyle = '#120e0c';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const boardHeight = 64;
+  for (let y = 0; y < canvas.height; y += boardHeight) {
+    const shade = Math.floor(16 + (Math.sin(y) * 0.5 + 0.5) * 12);
+    ctx.fillStyle = `rgb(${shade + 6}, ${shade + 2}, ${shade})`;
+    ctx.fillRect(0, y, canvas.width, boardHeight - 2);
+
+    ctx.fillStyle = '#060504';
+    ctx.fillRect(0, y + boardHeight - 2, canvas.width, 2);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, y + boardHeight / 2);
+    ctx.lineTo(canvas.width, y + boardHeight / 2);
+    ctx.stroke();
+  }
+
+  // Dark Radial Vignette on Left Side
+  const grad = ctx.createRadialGradient(400, 480, 80, 400, 480, 520);
+  grad.addColorStop(0, 'rgba(18, 14, 12, 0.1)');
+  grad.addColorStop(1, 'rgba(8, 6, 5, 0.95)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 880, canvas.height);
+
+  // Bull Head Artwork Profile
+  ctx.save();
+  const bullX = 400;
+  const bullY = 460;
+
+  // Bull Head Silhouette
+  ctx.fillStyle = '#1a1310';
+  ctx.beginPath();
+  ctx.ellipse(bullX, bullY - 20, 160, 210, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Forehead Fur Gradient
+  const headGrad = ctx.createRadialGradient(bullX - 20, bullY - 50, 20, bullX, bullY, 170);
+  headGrad.addColorStop(0, '#8c5332'); // Warm Angus fur highlight
+  headGrad.addColorStop(0.4, '#4a2c1b');
+  headGrad.addColorStop(1, '#140e0b');
+  ctx.fillStyle = headGrad;
+  ctx.beginPath();
+  ctx.ellipse(bullX - 10, bullY - 40, 145, 185, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Muzzle & Snout
+  ctx.fillStyle = '#2c1f18';
+  ctx.beginPath();
+  ctx.ellipse(bullX - 15, bullY + 110, 85, 65, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Nostrils
+  ctx.fillStyle = '#0c0806';
+  ctx.beginPath();
+  ctx.ellipse(bullX - 45, bullY + 115, 18, 12, -0.2, 0, Math.PI * 2);
+  ctx.ellipse(bullX + 15, bullY + 115, 18, 12, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Horns
+  ctx.fillStyle = '#d1c7b7';
+  ctx.beginPath();
+  ctx.moveTo(bullX - 110, bullY - 140);
+  ctx.quadraticCurveTo(bullX - 220, bullY - 220, bullX - 170, bullY - 260);
+  ctx.quadraticCurveTo(bullX - 140, bullY - 200, bullX - 90, bullY - 150);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(bullX + 90, bullY - 140);
+  ctx.quadraticCurveTo(bullX + 200, bullY - 220, bullX + 160, bullY - 260);
+  ctx.quadraticCurveTo(bullX + 130, bullY - 200, bullX + 70, bullY - 150);
+  ctx.closePath();
+  ctx.fill();
+
+  // Intelligent Eyes
+  ctx.fillStyle = '#080605';
+  ctx.beginPath();
+  ctx.ellipse(bullX - 85, bullY - 45, 16, 12, -0.2, 0, Math.PI * 2);
+  ctx.ellipse(bullX + 65, bullY - 45, 16, 12, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(bullX - 88, bullY - 48, 4, 0, Math.PI * 2);
+  ctx.arc(bullX + 62, bullY - 48, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Circular Green "COMPROMISSO SUSTENTÁVEL" Badge
+  ctx.save();
+  const badgeX = 360;
+  const badgeY = 820;
+
+  ctx.fillStyle = '#15803d';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, 105, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, 98, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = '#166534';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, 90, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Green Leaf Icon
+  ctx.fillStyle = '#86efac';
+  ctx.beginPath();
+  ctx.moveTo(badgeX - 10, badgeY + 35);
+  ctx.bezierCurveTo(badgeX - 55, badgeY - 20, badgeX - 10, badgeY - 55, badgeX + 25, badgeY - 45);
+  ctx.bezierCurveTo(badgeX + 45, badgeY, badgeX + 15, badgeY + 35, badgeX - 10, badgeY + 35);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 17px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('COMPROMISSO', badgeX, badgeY + 52);
+  ctx.font = 'bold 13px Arial, sans-serif';
+  ctx.fillText('SUSTENTÁVEL', badgeX, badgeY + 70);
+  ctx.restore();
+
+  // Frigorífico Silva Logo Text & Banner
+  const silvaX = 960;
+  const silvaY = 480;
+
+  ctx.save();
+  // Red, Yellow, Green Ribbon Flag
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath();
+  ctx.moveTo(silvaX, silvaY - 80);
+  ctx.lineTo(silvaX + 80, silvaY - 95);
+  ctx.lineTo(silvaX + 70, silvaY + 30);
+  ctx.lineTo(silvaX - 10, silvaY + 45);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#eab308';
+  ctx.beginPath();
+  ctx.moveTo(silvaX + 40, silvaY - 88);
+  ctx.lineTo(silvaX + 110, silvaY - 100);
+  ctx.lineTo(silvaX + 100, silvaY + 20);
+  ctx.lineTo(silvaX + 30, silvaY + 35);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#16a34a';
+  ctx.beginPath();
+  ctx.moveTo(silvaX + 80, silvaY - 95);
+  ctx.lineTo(silvaX + 140, silvaY - 105);
+  ctx.lineTo(silvaX + 130, silvaY + 10);
+  ctx.lineTo(silvaX + 70, silvaY + 25);
+  ctx.closePath();
+  ctx.fill();
+
+  // Frigorífico Silva Text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 84px Georgia, serif';
+  ctx.textAlign = 'left';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+  ctx.shadowBlur = 12;
+  ctx.fillText('Frigorífico Silva', silvaX + 160, silvaY - 10);
+
+  ctx.font = 'italic 36px Georgia, serif';
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillText('Desde 1972', silvaX + 440, silvaY + 35);
+  ctx.restore();
+
+  // Yellow "BestBeef" Badge
+  const beefX = 1440;
+  const beefY = 620;
+  ctx.save();
+  ctx.fillStyle = '#facc15';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.roundRect(beefX, beefY - 120, 520, 180, 24);
+  ctx.fill();
+
+  ctx.strokeStyle = '#fef08a';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#111827';
+  ctx.font = '900 115px "Arial Black", Impact, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('BestBeef', beefX + 260, beefY + 15);
+  ctx.restore();
+
+  // Red "CRYOVAC" Badge
+  ctx.save();
+  const cryoX = 1860;
+  const cryoY = 870;
+  ctx.fillStyle = '#dc2626';
+  ctx.fillRect(cryoX, cryoY, 160, 52);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 26px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('CRYOVAC', cryoX + 80, cryoY + 35);
+  ctx.restore();
+
+  // Red & White Reflective Safety Tape
+  const tapeY = canvas.height - 35;
+  const stripeWidth = 60;
+  for (let x = 0; x < canvas.width; x += stripeWidth * 2) {
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(x, tapeY, stripeWidth, 25);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + stripeWidth, tapeY, stripeWidth, 25);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
+// 2. Generate Cab Door "BestBeef" Badge Texture
+function createCabDoorTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(0, 0, 512, 512);
+
+  ctx.fillStyle = '#facc15';
+  ctx.beginPath();
+  ctx.roundRect(90, 200, 332, 115, 18);
+  ctx.fill();
+
+  ctx.fillStyle = '#111827';
+  ctx.font = '900 68px "Arial Black", Impact, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('BestBeef', 256, 282);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
 function buildVehicle3DModel(type, group, brandColorHex) {
   // Clear previous meshes
   while (group.children.length > 0) {
@@ -252,76 +507,280 @@ function buildVehicle3DModel(type, group, brandColorHex) {
   const brandColor = new THREE.Color(brandColorHex);
 
   if (type === 'truck') {
-    // 1. REFRIGERATED TRUCK MODEL (Caminhão Frigorífico)
-    // Cabin
-    const cabinGeo = new THREE.BoxGeometry(2.4, 2.6, 2.2);
-    const cabinMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
-    const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-    cabin.position.set(-3.5, 1.3, 0);
-    group.add(cabin);
+    // ==========================================
+    // REALISTIC SEMI-TRAILER REFRIGERATED TRUCK
+    // (Frigorífico Silva / BestBeef)
+    // ==========================================
 
-    // Windshield
-    const glassGeo = new THREE.BoxGeometry(0.1, 1.0, 1.9);
-    const glassMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, transparent: true, opacity: 0.6 });
+    const trailerSideTexture = createRefrigeratedTrailerTexture();
+    const doorTexture = createCabDoorTexture();
+
+    // --- 1. TRACTOR CABIN (Cavalo Mecânico Branco) ---
+    const cabGroup = new THREE.Group();
+    cabGroup.position.set(-4.2, 0, 0);
+
+    // Main Cab Body
+    const cabinGeo = new THREE.BoxGeometry(2.5, 2.7, 2.3);
+    const whitePaintMat = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.15,
+      metalness: 0.2
+    });
+    const cabinMesh = new THREE.Mesh(cabinGeo, whitePaintMat);
+    cabinMesh.position.set(0, 2.2, 0);
+    cabinMesh.castShadow = true;
+    cabGroup.add(cabinMesh);
+
+    // Aerodynamic Roof Deflector / Wind Spoiler
+    const spoilerShape = new THREE.Shape();
+    spoilerShape.moveTo(-1.25, 0);
+    spoilerShape.lineTo(1.25, 0);
+    spoilerShape.lineTo(0.9, 0.6);
+    spoilerShape.lineTo(-1.1, 0.6);
+    spoilerShape.closePath();
+    const spoilerGeo = new THREE.ExtrudeGeometry(spoilerShape, { depth: 2.25, bevelEnabled: true, bevelSize: 0.05 });
+    const spoilerMesh = new THREE.Mesh(spoilerGeo, whitePaintMat);
+    spoilerMesh.rotation.y = Math.PI / 2;
+    spoilerMesh.position.set(-1.12, 3.55, -1.12);
+    cabGroup.add(spoilerMesh);
+
+    // Windshield (Black/Blue Tinted Glass)
+    const glassGeo = new THREE.BoxGeometry(0.08, 1.1, 2.1);
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      roughness: 0.1,
+      metalness: 0.9,
+      transparent: true,
+      opacity: 0.85
+    });
     const glass = new THREE.Mesh(glassGeo, glassMat);
-    glass.position.set(-4.71, 1.7, 0);
-    group.add(glass);
+    glass.position.set(-1.26, 2.65, 0);
+    cabGroup.add(glass);
 
-    // Grille & Headlights
-    const grilleGeo = new THREE.BoxGeometry(0.1, 0.8, 1.8);
-    const grilleMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9 });
+    // Side Door Decal (BestBeef Logo on Door)
+    const doorDecalMat = new THREE.MeshStandardMaterial({ map: doorTexture, roughness: 0.3 });
+    const leftDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
+    leftDoor.rotation.y = Math.PI / 2;
+    leftDoor.position.set(0.1, 2.1, 1.16);
+    cabGroup.add(leftDoor);
+
+    const rightDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
+    rightDoor.rotation.y = -Math.PI / 2;
+    rightDoor.position.set(0.1, 2.1, -1.16);
+    cabGroup.add(rightDoor);
+
+    // Front Grille & Bumper
+    const grilleGeo = new THREE.BoxGeometry(0.1, 0.9, 2.2);
+    const grilleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.4 });
     const grille = new THREE.Mesh(grilleGeo, grilleMat);
-    grille.position.set(-4.71, 0.7, 0);
-    group.add(grille);
+    grille.position.set(-1.26, 1.35, 0);
+    cabGroup.add(grille);
 
-    // Refrigerator Trailer Box (Baú Frigorífico)
-    const boxGeo = new THREE.BoxGeometry(7.5, 3.2, 2.6);
-    const boxMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.1 });
-    const box = new THREE.Mesh(boxGeo, boxMat);
-    box.position.set(1.5, 1.8, 0);
-    group.add(box);
+    // Headlights (Chrome Reflectors with LED Lenses)
+    const headlightMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfef08a, emissiveIntensity: 0.5 });
+    [-0.85, 0.85].forEach(zPos => {
+      const hl = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.25, 0.35), headlightMat);
+      hl.position.set(-1.26, 1.05, zPos);
+      cabGroup.add(hl);
+    });
 
-    // ThermoKing AC Unit on Front of Box
-    const acGeo = new THREE.BoxGeometry(0.8, 1.4, 2.0);
-    const acMat = new THREE.MeshStandardMaterial({ color: brandColor, metalness: 0.6 });
-    const acUnit = new THREE.Mesh(acGeo, acMat);
-    acUnit.position.set(-2.4, 2.3, 0);
-    group.add(acUnit);
+    // Side Mirrors
+    const mirrorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 });
+    [-1.22, 1.22].forEach(zPos => {
+      const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.15), mirrorMat);
+      mirror.position.set(-0.8, 2.6, zPos);
+      cabGroup.add(mirror);
+    });
 
-    // Side Decal / Stripe
-    const stripeGeo = new THREE.BoxGeometry(7.4, 0.4, 2.62);
-    const stripeMat = new THREE.MeshStandardMaterial({ color: brandColor, metalness: 0.5 });
-    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-    stripe.position.set(1.5, 1.8, 0);
-    group.add(stripe);
+    // Metallic Diamond Plate Catwalk Platform (Atrás da cabine)
+    const plateGeo = new THREE.BoxGeometry(1.8, 0.1, 2.2);
+    const plateMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 });
+    const plate = new THREE.Mesh(plateGeo, plateMat);
+    plate.position.set(1.2, 0.85, 0);
+    cabGroup.add(plate);
 
-    // Wheels (6 wheels)
-    const wheelGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.4, 24);
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8 });
+    // Dual Polished Chrome Fuel Tanks (Tanques de Combustível de Alumínio)
+    const tankGeo = new THREE.CylinderGeometry(0.42, 0.42, 1.8, 24);
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 });
+    const strapMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 });
 
+    [-1.18, 1.18].forEach(zPos => {
+      const tank = new THREE.Mesh(tankGeo, chromeMat);
+      tank.rotation.z = Math.PI / 2;
+      tank.position.set(0.6, 0.55, zPos);
+      cabGroup.add(tank);
+
+      // Tank Straps
+      [-0.4, 0.4].forEach(xOff => {
+        const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.08, 24), strapMat);
+        strap.rotation.z = Math.PI / 2;
+        strap.position.set(0.6 + xOff, 0.55, zPos);
+        cabGroup.add(strap);
+      });
+    });
+
+    group.add(cabGroup);
+
+    // --- 2. REFRIGERATED SEMI-TRAILER (Carreta Baú Frigorífico) ---
+    const trailerGroup = new THREE.Group();
+    trailerGroup.position.set(2.8, 0, 0);
+
+    const boxLength = 11.5;
+    const boxHeight = 3.6;
+    const boxWidth = 2.6;
+
+    // Multi-Material for Box Faces
+    const sideMat = new THREE.MeshStandardMaterial({
+      map: trailerSideTexture,
+      roughness: 0.35,
+      metalness: 0.15
+    });
+
+    const roofMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.3, roughness: 0.3 });
+    const frontMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+    const rearDoorsMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.2 });
+
+    const boxMaterials = [
+      sideMat,       // Right side (+X face of box, mapped to trailer right wall)
+      sideMat,       // Left side (-X face)
+      roofMat,       // Top roof (+Y)
+      frontMat,      // Bottom floor (-Y)
+      frontMat,      // Front wall (+Z)
+      rearDoorsMat   // Rear doors (-Z)
+    ];
+
+    const boxGeo = new THREE.BoxGeometry(boxLength, boxHeight, boxWidth);
+    const boxMesh = new THREE.Mesh(boxGeo, boxMaterials);
+    boxMesh.position.set(0, 2.65, 0);
+    boxMesh.castShadow = true;
+    boxMesh.receiveShadow = true;
+    trailerGroup.add(boxMesh);
+
+    // Polished Aluminum Bevel Frame Rails (Cantoneiras de alumínio polido ao redor do baú)
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.15 });
+
+    // Edge Trim Bars
+    const edgeTopL = new THREE.Mesh(new THREE.BoxGeometry(boxLength + 0.05, 0.12, 0.12), frameMat);
+    edgeTopL.position.set(0, 4.46, 1.31);
+    trailerGroup.add(edgeTopL);
+
+    const edgeTopR = new THREE.Mesh(new THREE.BoxGeometry(boxLength + 0.05, 0.12, 0.12), frameMat);
+    edgeTopR.position.set(0, 4.46, -1.31);
+    trailerGroup.add(edgeTopR);
+
+    const edgeBotL = new THREE.Mesh(new THREE.BoxGeometry(boxLength + 0.05, 0.12, 0.12), frameMat);
+    edgeBotL.position.set(0, 0.86, 1.31);
+    trailerGroup.add(edgeBotL);
+
+    const edgeBotR = new THREE.Mesh(new THREE.BoxGeometry(boxLength + 0.05, 0.12, 0.12), frameMat);
+    edgeBotR.position.set(0, 0.86, -1.31);
+    trailerGroup.add(edgeBotR);
+
+    // Thermo King Refrigeration Unit (Aparelho de Refrigeração Frontal)
+    const thermoKingGroup = new THREE.Group();
+    thermoKingGroup.position.set(-5.8, 3.1, 0);
+
+    const acBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.7, 1.6, 2.1),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 })
+    );
+    thermoKingGroup.add(acBody);
+
+    // Fan Grille
+    const fanGrille = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.5, 0.72, 24),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 })
+    );
+    fanGrille.rotation.z = Math.PI / 2;
+    fanGrille.position.set(0.02, 0.2, 0);
+    thermoKingGroup.add(fanGrille);
+
+    // Digital Temperature Display LED Badge
+    const ledDisplay = new THREE.Mesh(
+      new THREE.BoxGeometry(0.72, 0.25, 0.5),
+      new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.8 })
+    );
+    ledDisplay.position.set(0.02, -0.4, 0);
+    thermoKingGroup.add(ledDisplay);
+
+    trailerGroup.add(thermoKingGroup);
+
+    // Rear Doors Stainless Steel Locking Bars (Trincos de Inox Traseiros)
+    const lockBarMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.95, roughness: 0.1 });
+    [-0.5, 0.5].forEach(zPos => {
+      const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, boxHeight - 0.2, 16), lockBarMat);
+      bar.position.set(5.76, 2.65, zPos);
+      trailerGroup.add(bar);
+    });
+
+    group.add(trailerGroup);
+
+    // --- 3. WHEELS, AXLES & SUSPENSION (5 Axles total: 2 tractor + 3 trailer tri-dem) ---
+    const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.45, 32);
+    const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.85 });
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.9, roughness: 0.1 });
+    const hubMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 });
+    const fenderMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.6 });
+
+    // Wheel positions: [x, y, z]
     const wheelPositions = [
-      [-3.5, 0.6, 1.1], [-3.5, 0.6, -1.1],
-      [1.0, 0.6, 1.1], [1.0, 0.6, -1.1],
-      [3.8, 0.6, 1.1], [3.8, 0.6, -1.1]
+      // Tractor Front Steering Axle
+      [-5.3, 0.55, 1.15], [-5.3, 0.55, -1.15],
+      // Tractor Rear Drive Axles (Duals)
+      [-3.3, 0.55, 1.15], [-3.3, 0.55, -1.15],
+      [-2.1, 0.55, 1.15], [-2.1, 0.55, -1.15],
+      // Trailer Tri-Dem Axles
+      [4.2, 0.55, 1.25], [4.2, 0.55, -1.25],
+      [5.6, 0.55, 1.25], [5.6, 0.55, -1.25],
+      [7.0, 0.55, 1.25], [7.0, 0.55, -1.25]
     ];
 
     wheelPositions.forEach(([x, y, z]) => {
-      const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-      wheel.rotation.x = Math.PI / 2;
-      wheel.position.set(x, y, z);
+      const wheelGroup = new THREE.Group();
+      wheelGroup.position.set(x, y, z);
 
-      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.42, 12), rimMat);
+      // Rubber Tire
+      const tire = new THREE.Mesh(wheelGeo, tireMat);
+      tire.rotation.x = Math.PI / 2;
+      tire.castShadow = true;
+      wheelGroup.add(tire);
+
+      // Polished Chrome Rim
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.47, 16), rimMat);
       rim.rotation.x = Math.PI / 2;
-      rim.position.set(x, y, z);
+      wheelGroup.add(rim);
 
-      group.add(wheel);
-      group.add(rim);
+      // Center Wheel Hub
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.49, 12), hubMat);
+      hub.rotation.x = Math.PI / 2;
+      wheelGroup.add(hub);
+
+      group.add(wheelGroup);
     });
+
+    // Trailer Rear Black Mudguards / Fenders over Tri-Dem Axles
+    [4.2, 5.6, 7.0].forEach(xPos => {
+      [-1.25, 1.25].forEach(zPos => {
+        const fender = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.65, 0.65, 0.52, 16, 1, false, 0, Math.PI),
+          fenderMat
+        );
+        fender.rotation.z = Math.PI;
+        fender.rotation.y = Math.PI / 2;
+        fender.position.set(xPos, 0.85, zPos);
+        group.add(fender);
+      });
+    });
+
+    // Rear Rubber Mudflap (Lameirão Frigorífico Silva)
+    const mudflapGeo = new THREE.BoxGeometry(0.05, 0.7, 2.7);
+    const mudflapMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+    const mudflap = new THREE.Mesh(mudflapGeo, mudflapMat);
+    mudflap.position.set(8.2, 0.6, 0);
+    group.add(mudflap);
 
   } else if (type === 'ship') {
     // 2. CONTAINER SHIP MODEL (Navio Porta-Contêineres)
-    // Hull
     const hullShape = new THREE.Shape();
     hullShape.moveTo(-6, 0);
     hullShape.lineTo(6, 0);
@@ -336,21 +795,18 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     hull.position.set(0, 0, -1.5);
     group.add(hull);
 
-    // Red Bottom Hull Line
     const redBottomGeo = new THREE.BoxGeometry(13.8, 0.8, 3.2);
     const redBottomMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.5 });
     const redBottom = new THREE.Mesh(redBottomGeo, redBottomMat);
     redBottom.position.set(0.5, 0.4, 0);
     group.add(redBottom);
 
-    // Command Tower Bridge
     const bridgeGeo = new THREE.BoxGeometry(2.0, 4.0, 2.6);
     const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 });
     const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
     bridge.position.set(-4.0, 3.8, 0);
     group.add(bridge);
 
-    // Containers stacked on deck
     const containerColors = [0x00f2fe, 0xef4444, 0x10b981, 0xf59e0b, 0x8b5cf6, 0x3b82f6];
     let colIdx = 0;
     for (let x = -1.5; x <= 5.5; x += 1.8) {
@@ -371,8 +827,7 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     }
 
   } else if (type === 'plane') {
-    // 3. AIR CARGO FREIGHTER (Avião de Carga Boeing 777F)
-    // Fuselage Body
+    // 3. AIR CARGO FREIGHTER (Boeing 777F)
     const fuselageGeo = new THREE.CylinderGeometry(1.2, 1.2, 12, 32);
     const fuselageMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.5, roughness: 0.2 });
     const fuselage = new THREE.Mesh(fuselageGeo, fuselageMat);
@@ -380,7 +835,6 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     fuselage.position.set(0, 2, 0);
     group.add(fuselage);
 
-    // Cockpit Nose Cone
     const noseGeo = new THREE.ConeGeometry(1.2, 2.5, 32);
     const noseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 });
     const nose = new THREE.Mesh(noseGeo, noseMat);
@@ -388,7 +842,6 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     nose.position.set(-7.25, 2, 0);
     group.add(nose);
 
-    // Swept Main Wings
     const wingShape = new THREE.Shape();
     wingShape.moveTo(0, 0);
     wingShape.lineTo(-2, -6);
@@ -403,7 +856,6 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     wings.position.set(0, 2, 0);
     group.add(wings);
 
-    // Turbofan Jet Engines under wings
     const engineGeo = new THREE.CylinderGeometry(0.5, 0.5, 2.2, 24);
     const engineMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.1 });
     [-2.5, 2.5].forEach(zPos => {
@@ -414,29 +866,25 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     });
 
   } else if (type === 'train') {
-    // 4. FREIGHT LOCOMOTIVE (Trem de Carga)
-    // Locomotive Body
+    // 4. FREIGHT LOCOMOTIVE
     const locGeo = new THREE.BoxGeometry(6.0, 2.8, 2.2);
     const locMat = new THREE.MeshStandardMaterial({ color: 0x10b981, metalness: 0.7, roughness: 0.3 });
     const loc = new THREE.Mesh(locGeo, locMat);
     loc.position.set(-3.0, 1.8, 0);
     group.add(loc);
 
-    // Cabin Top
     const cabGeo = new THREE.BoxGeometry(2.2, 1.2, 2.2);
     const cabMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.2 });
     const cab = new THREE.Mesh(cabGeo, cabMat);
     cab.position.set(-4.5, 3.2, 0);
     group.add(cab);
 
-    // Freight Boxcar 01
     const car1Geo = new THREE.BoxGeometry(5.5, 2.6, 2.1);
     const car1Mat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.4 });
     const car1 = new THREE.Mesh(car1Geo, car1Mat);
     car1.position.set(3.2, 1.7, 0);
     group.add(car1);
 
-    // Rails beneath train
     const railGeo = new THREE.BoxGeometry(16, 0.15, 0.1);
     const railMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 });
     [-0.8, 0.8].forEach(z => {
@@ -446,3 +894,4 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     });
   }
 }
+

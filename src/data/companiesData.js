@@ -1,5 +1,52 @@
 export const COMPANIES_DATA = [
   {
+    id: 'frigorifico-silva',
+    name: 'Frigorífico Silva — BestBeef',
+    badge: 'Carreta Frigorífica & Carnes Nores Premium',
+    logo: '🥩',
+    color: '#f59e0b',
+    rating: 5.0,
+    tripsCompleted: 3450,
+    transportType: 'truck',
+    transportName: 'Carreta Frigorífica BestBeef (Frigorífico Silva)',
+    modelSpec: 'Scania R540 6x4 + Baú Frigorífico Tri-Dem Cryovac / ThermoKing',
+    capacity: '28 Toneladas / 28 Paletes de Carnes Resfriadas',
+    cargoName: 'Cortes Bovinos Nobres BestBeef (Embalados a Vácuo Cryovac)',
+    cargoSku: 'BEEF-SILVA-2026',
+    targetTempMin: -2.0,
+    targetTempMax: 2.0,
+    currentTemp: 0.4,
+    humidity: 85,
+    origin: 'Santa Maria, RS (Matriz Frigorífico Silva)',
+    destination: 'São Paulo, SP (Hub Logístico Distribuição)',
+    routeDistance: '1.180 km',
+    elapsedTime: '11:30:00',
+    eta: '02:45:00',
+    progress: 81,
+    speed: 82,
+    status: 'Em Trânsito - Cadeia de Frio Ideal',
+    containerLayout: {
+      totalPallets: 28,
+      zones: [
+        { name: 'Zona Dianteira (ThermoKing Evaporador)', item: 'Cortes Especiais BestBeef (Picanha, Ancho, Chorizo)', pallets: 10, temp: -0.5, status: 'Ideal' },
+        { name: 'Zona Central (Coração do Baú)', item: 'Linha BestBeef Black & Angus Hambúrgueres', pallets: 10, temp: 0.2, status: 'Ideal' },
+        { name: 'Zona Traseira (Portas de Expalação)', item: 'Linha Cryovac Embalados a Vácuo Resfriados', pallets: 8, temp: 0.8, status: 'Monitorar' }
+      ]
+    },
+    aiForecast: {
+      riskScore: '4%',
+      riskLevel: 'Mínimo',
+      insights: [
+        'Temperatura interna do Baú Frigorífico mantida em +0.4°C constantes (Margem ideal para cortes resfriados).',
+        'Vedações de borracha e isolamento em poliuretano expandido Cryovac operando com eficácia máxima de 99.8%.'
+      ],
+      preventivePlans: [
+        'Manter refrigeração ativa em modo contínuo até a doca de desembarque em São Paulo.',
+        'Realizar verificação de rotina do nível do tanque de combustível do motor auxiliar ThermoKing.'
+      ]
+    }
+  },
+  {
     id: 'coldchain-express',
     name: 'ColdChain Express Solutions',
     badge: 'Cadeia de Frio Farmacêutica & Alimentar',
