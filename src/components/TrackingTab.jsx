@@ -4,6 +4,7 @@ import BakeryDashboard from './BakeryDashboard';
 import FleetManager from './FleetManager';
 import LightTelemetry from './LightTelemetry';
 import LiveMapRoute from './LiveMapRoute';
+import AiContextPanel from './AiContextPanel';
 import { DELIVERY_NODES, FLEET_VEHICLES, CURRENT_TRIP } from '../data/bakeryData';
 
 export default function TrackingTab({ onLock, onReset }) {
@@ -14,6 +15,14 @@ export default function TrackingTab({ onLock, onReset }) {
   const [etaMins, setEtaMins] = useState(0);
   const [isAlert, setIsAlert] = useState(false);
   const [showGeofence, setShowGeofence] = useState(false);
+  const [toast, setToast] = useState({ visible: false, title: '', message: '' });
+
+  const showToast = (title, message) => {
+    setToast({ visible: true, title, message });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 5000);
+  };
 
   useEffect(() => {
     let timer;
@@ -52,16 +61,20 @@ export default function TrackingTab({ onLock, onReset }) {
     if (stepStatus === 'waiting') {
       setStepStatus('loading');
       if (onLock) onLock();
+      showToast('Logística Iniciada', `Carregamento iniciado na ${DELIVERY_NODES[currentNodeIndex].name}.`);
     } else if (stepStatus === 'loading') {
       setStepStatus('transit');
       setShowGeofence(false);
+      showToast('Produto em Trânsito', `Veículo a caminho da próxima parada. Acompanhe pelo mapa.`);
     } else if (stepStatus === 'transit') {
       setStepStatus('unloading');
       setEtaMins(0);
       setShowGeofence(false);
+      showToast('Chegada ao Destino', `Veículo chegou na filial destino. Inicie o descarregamento rápido.`);
     } else if (stepStatus === 'unloading') {
       setStepStatus('waiting');
       setCurrentNodeIndex(prev => prev + 1);
+      showToast('Transferência Concluída', `Estoque atualizado e entrega confirmada com sucesso!`);
     }
   };
 
@@ -83,6 +96,21 @@ export default function TrackingTab({ onLock, onReset }) {
           </div>
         </div>
       )}
+
+      {/* Toast Notification (Pop-up Lateral) */}
+      {toast.visible && (
+        <div className="fixed top-6 right-6 z-[999] bg-slate-800 border-l-4 border-brand-secondary p-4 rounded shadow-2xl animate-fade-in flex flex-col gap-1 max-w-sm">
+          <div className="flex items-center gap-2 text-brand-secondary font-bold">
+            <BellRing size={16} /> {toast.title}
+          </div>
+          <p className="text-sm text-slate-300">{toast.message}</p>
+        </div>
+      )}
+
+      {/* IA Context Panel */}
+      <div className="mb-6">
+        <AiContextPanel currentNodeIndex={currentNodeIndex} />
+      </div>
 
       <LiveMapRoute 
         currentNodeIndex={currentNodeIndex}

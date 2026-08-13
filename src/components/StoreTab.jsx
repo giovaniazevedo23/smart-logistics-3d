@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ShoppingCart, PackagePlus, Calculator, Save, CheckCircle2, Lock } from 'lucide-react';
+import { ShoppingCart, PackagePlus, Calculator, Save, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
 
 const PRODUCTS = [
-  { id: 'pao_frances', name: 'Pão Francês Congelado', qty: 1694, type: 'Sensível (-18°C)' },
-  { id: 'pao_queijo', name: 'Pão de Queijo Cru', qty: 500, type: 'Moderado (-12°C)' },
+  { id: 'pao_frances', name: 'Pão Francês Congelado', qty: 1694, type: 'Sensível (-18°C)', unitValue: 0.50 },
+  { id: 'pao_queijo', name: 'Pão de Queijo Cru', qty: 500, type: 'Moderado (-12°C)', unitValue: 1.50 },
 ];
 
 const EQUIPMENTS = [
@@ -16,6 +16,10 @@ const BASE_FREIGHT = 150.00; // Base cost for Fiorino run
 
 export default function StoreTab({ storeResult, setStoreResult, setActiveTab, isLocked }) {
   const [cart, setCart] = useState(storeResult?.cart || {});
+  const [hasInsurance, setHasInsurance] = useState(storeResult?.hasInsurance || false);
+  
+  const productTotalValue = PRODUCTS.reduce((sum, p) => sum + (p.qty * p.unitValue), 0);
+  const insuranceFee = productTotalValue * 0.20;
   
   const handleAddToCart = (eqId, change) => {
     if (isLocked) return;
@@ -32,7 +36,8 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       const eq = EQUIPMENTS.find(e => e.id === id);
       if (eq) equipTotal += eq.price * qty;
     });
-    return { equipTotal, finalTotal: BASE_FREIGHT + equipTotal };
+    const finalTotal = BASE_FREIGHT + equipTotal + (hasInsurance ? insuranceFee : 0);
+    return { equipTotal, finalTotal };
   };
 
   const { equipTotal, finalTotal } = calculateTotal();
@@ -40,7 +45,8 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
   const handleSave = () => {
     setStoreResult({
       cart,
-      totals: { equipTotal, finalTotal, baseFreight: BASE_FREIGHT }
+      hasInsurance,
+      totals: { equipTotal, finalTotal, baseFreight: BASE_FREIGHT, insuranceFee: hasInsurance ? insuranceFee : 0 }
     });
     // Move para a proxima aba automaticamente
     setActiveTab('questionnaire');
@@ -81,6 +87,27 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                   <div className="font-bold text-brand-secondary">{p.qty} un</div>
                 </div>
               ))}
+            </div>
+
+            {/* Seguro Adicional */}
+            <div className="mt-4 p-4 border border-blue-500/50 bg-blue-900/20 rounded-lg flex items-start gap-4">
+              <div className="mt-1">
+                <input 
+                  type="checkbox" 
+                  id="insurance" 
+                  checked={hasInsurance}
+                  onChange={(e) => setHasInsurance(e.target.checked)}
+                  disabled={isLocked}
+                  className="w-5 h-5 rounded bg-slate-900 border-slate-600 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="insurance" className="font-bold text-blue-300 flex items-center gap-2 cursor-pointer">
+                  <ShieldCheck size={18} /> Plano de Seguro (Integridade 100%)
+                </label>
+                <p className="text-sm text-slate-400 mt-1">Garantia total contra quebra de cadeia do frio e sinistros. Taxa de 20% sobre o valor dos produtos transportados (Valor Declarado: R$ {productTotalValue.toFixed(2)}).</p>
+                <span className="text-blue-400 font-bold text-sm block mt-2">+ R$ {insuranceFee.toFixed(2)} ao total</span>
+              </div>
             </div>
           </div>
 
@@ -150,6 +177,13 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                   </div>
                 );
               })}
+
+              {hasInsurance && (
+                <div className="flex justify-between items-center text-blue-400">
+                  <span className="truncate pr-4 flex items-center gap-1"><ShieldCheck size={14}/> Seguro de Carga (20%)</span>
+                  <span>R$ {insuranceFee.toFixed(2)}</span>
+                </div>
+              )}
 
               <div className="border-t border-slate-700 pt-4 flex justify-between items-center">
                 <span className="text-slate-200 font-bold text-lg">Custo Total:</span>
