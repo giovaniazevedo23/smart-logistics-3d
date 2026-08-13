@@ -68,10 +68,19 @@ export default function QuestionnaireTab({ setQuestionnaireResult, setActiveTab 
           
           {/* ETAPA 1 */}
           <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
-            <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2">Etapa 1: Dimensionamento de Carga e Demanda</h3>
+            <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2 flex items-center gap-2">
+              <Lightbulb size={20} className="text-amber-400" /> Etapa 1: Prescrição de Veículo e Acondicionamento
+            </h3>
+            
+            <div className="mb-6 bg-brand-primary/10 border border-brand-primary/30 p-4 rounded-lg">
+              <p className="text-sm text-slate-300">
+                <strong className="text-brand-primary block mb-1">Assistente Inteligente (Recomendação Prescritiva):</strong>
+                "Para esta carga planejada de 85 kg (1.694 unidades), o melhor transporte é um Utilitário Leve (ex: Fiorino/Kangoo) com Baú Isotérmico e Caixas Térmicas EPP com Placas Eutéticas (Gelox a -20°C). Isso reduz os custos de frete em 60% comparado a caminhões pesados."
+              </p>
+            </div>
             
             <div className="mb-4">
-              <p className="font-semibold mb-2 text-sm text-slate-200">1. Qual é a demanda total planejada para este lote de distribuição?</p>
+              <p className="font-semibold mb-2 text-sm text-slate-200">1. Confirmar o veículo e acondicionamento selecionado para a expedição:</p>
               <label className="flex items-start gap-2 cursor-pointer mb-2">
                 <input type="radio" required name="demanda" value="padrao" checked={answers.demanda === 'padrao'} onChange={() => handleChange('demanda', 'padrao')} className="mt-1" />
                 <span className="text-sm text-slate-400"><strong className="text-slate-200">Carga Padrão Semanal:</strong> 1.694 unidades (~85 kg distribuídos entre as Loja 1: 309, Loja 2: 460, Loja 3: 410, Loja 4: 515).</span>
@@ -97,26 +106,24 @@ export default function QuestionnaireTab({ setQuestionnaireResult, setActiveTab 
 
           {/* ETAPA 2 */}
           <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
-            <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2">Etapa 2: Preservação da Cadeia do Frio</h3>
+            <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2 flex items-center gap-2">
+              <Clock size={20} className="text-amber-400" /> Etapa 2: Pré-Controle Obrigatório de Temperatura
+            </h3>
             
             <div className="mb-4">
-              <p className="font-semibold mb-2 text-sm text-slate-200">3. Qual é o mecanismo de conservação térmica utilizado no veículo?</p>
+              <p className="font-semibold mb-2 text-sm text-slate-200">3. A temperatura da câmara fria no CD foi validada antes da liberação?</p>
               <label className="flex items-start gap-2 cursor-pointer mb-2">
                 <input type="radio" required name="conservacao" value="opcao_a" checked={answers.conservacao === 'opcao_a'} onChange={() => handleChange('conservacao', 'opcao_a')} className="mt-1" />
-                <span className="text-sm text-slate-400"><strong className="text-emerald-400">Opção A (Recomendada Lean):</strong> Caixas térmicas isotérmicas (EPP) com placas eutéticas (Gelox) congeladas a -20°C.</span>
+                <span className="text-sm text-slate-400"><strong className="text-emerald-400">Sim:</strong> A câmara encontra-se a -18°C. Liberação térmica autorizada.</span>
               </label>
               <label className="flex items-start gap-2 cursor-pointer mb-2">
-                <input type="radio" required name="conservacao" value="opcao_b" checked={answers.conservacao === 'opcao_b'} onChange={() => handleChange('conservacao', 'opcao_b')} className="mt-1" />
-                <span className="text-sm text-slate-400"><strong className="text-amber-400">Opção B:</strong> Baú utilitário com isolamento térmico em Poliuretano (PU 50mm) + Gelox interno.</span>
-              </label>
-              <label className="flex items-start gap-2 cursor-pointer">
                 <input type="radio" required name="conservacao" value="opcao_c" checked={answers.conservacao === 'opcao_c'} onChange={() => handleChange('conservacao', 'opcao_c')} className="mt-1" />
-                <span className="text-sm text-slate-400"><strong className="text-rose-400">Opção C (Crítico):</strong> Apenas caixas plásticas abertas em veículo convencional sem isolamento.</span>
+                <span className="text-sm text-slate-400"><strong className="text-rose-400">Não (Crítico):</strong> Câmara acima de -10°C, risco de quebra da cadeia do frio antes da expedição.</span>
               </label>
             </div>
 
             <div>
-              <p className="font-semibold mb-2 text-sm text-slate-200">4. Os sensores IoT Bluetooth (BLE) de temperatura já foram pareados com o app?</p>
+              <p className="font-semibold mb-2 text-sm text-slate-200">4. Os sensores IoT Bluetooth (BLE) já foram pareados com as caixas?</p>
               <label className="flex items-start gap-2 cursor-pointer mb-2">
                 <input type="radio" required name="sensores" value="sim" checked={answers.sensores === 'sim'} onChange={() => handleChange('sensores', 'sim')} className="mt-1" />
                 <span className="text-sm text-slate-400"><strong className="text-slate-200">Sim:</strong> Sensores ativos enviando telemetria.</span>
@@ -159,29 +166,31 @@ export default function QuestionnaireTab({ setQuestionnaireResult, setActiveTab 
 
           {/* ETAPA 4 */}
           <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
-            <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2">Etapa 4: Agilidade na Descarga</h3>
+            <h3 className="font-bold text-lg mb-4 text-brand-secondary border-b border-slate-700 pb-2 flex items-center gap-2">
+              <ClipboardCheck size={20} className="text-amber-400" /> Etapa 4: Checklist de Agilidade (Carga/Descarga)
+            </h3>
             
             <div className="mb-4">
-              <p className="font-semibold mb-2 text-sm text-slate-200">7. As filiais foram notificadas e possuem espaço nos freezers?</p>
+              <p className="font-semibold mb-2 text-sm text-slate-200">7. As equipes de loja confirmaram a prontidão para receber o lote em menos de 8 minutos?</p>
               <label className="flex items-start gap-2 cursor-pointer mb-2">
                 <input type="radio" required name="notificacao" value="sim" checked={answers.notificacao === 'sim'} onChange={() => handleChange('notificacao', 'sim')} className="mt-1" />
-                <span className="text-sm text-slate-400"><strong className="text-emerald-400">Sim:</strong> Espaço reservado e equipes em alerta (Geofencing).</span>
+                <span className="text-sm text-slate-400"><strong className="text-emerald-400">Sim:</strong> Equipes de prontidão e espaço reservado nos freezers via aviso de Geofencing.</span>
               </label>
               <label className="flex items-start gap-2 cursor-pointer">
                 <input type="radio" required name="notificacao" value="nao" checked={answers.notificacao === 'nao'} onChange={() => handleChange('notificacao', 'nao')} className="mt-1" />
-                <span className="text-sm text-slate-400"><strong className="text-amber-400">Não:</strong> Confirmação apenas na chegada.</span>
+                <span className="text-sm text-slate-400"><strong className="text-amber-400">Não:</strong> Risco de exposição ao ambiente externo durante a espera pela equipe da loja.</span>
               </label>
             </div>
 
             <div>
-              <p className="font-semibold mb-2 text-sm text-slate-200">8. Como será realizada a conferência?</p>
+              <p className="font-semibold mb-2 text-sm text-slate-200">8. A conferência digital por QR Code (Proof of Delivery) está configurada?</p>
               <label className="flex items-start gap-2 cursor-pointer mb-2">
                 <input type="radio" required name="conferencia" value="digital" checked={answers.conferencia === 'digital'} onChange={() => handleChange('conferencia', 'digital')} className="mt-1" />
-                <span className="text-sm text-slate-400"><strong className="text-emerald-400">Digital:</strong> Leitura rápida QR Code (&lt; 2 min/caixa).</span>
+                <span className="text-sm text-slate-400"><strong className="text-emerald-400">Digital:</strong> Escaneamento ágil ativado (Evita a contagem manual na doca).</span>
               </label>
               <label className="flex items-start gap-2 cursor-pointer">
                 <input type="radio" required name="conferencia" value="manual" checked={answers.conferencia === 'manual'} onChange={() => handleChange('conferencia', 'manual')} className="mt-1" />
-                <span className="text-sm text-slate-400"><strong className="text-amber-400">Manual:</strong> Contagem física.</span>
+                <span className="text-sm text-slate-400"><strong className="text-amber-400">Manual:</strong> Contagem física das unidades na recepção (Lento).</span>
               </label>
             </div>
           </div>
