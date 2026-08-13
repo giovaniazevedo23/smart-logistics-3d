@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ShoppingCart, PackagePlus, Calculator, Save, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, PackagePlus, Calculator, Save, CheckCircle2, Lock, ShieldCheck, MapPin, Truck } from 'lucide-react';
+import InvoiceModal from './InvoiceModal';
 
 const PRODUCTS = [
   { id: 'pao_frances', name: 'Pão Francês Congelado', qty: 1694, type: 'Sensível (-18°C)', unitValue: 0.50 },
@@ -23,9 +24,16 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
   const [fleetCart, setFleetCart] = useState(storeResult?.fleetCart || { fiorino: 1 });
   const [hasInsurance, setHasInsurance] = useState(storeResult?.hasInsurance || false);
   
+  // New Freight Logic
+  const [routeDistance, setRouteDistance] = useState(storeResult?.routeDistance || 50);
+  const [stopsCount, setStopsCount] = useState(storeResult?.stopsCount || 4);
+  const [stopAllocations, setStopAllocations] = useState(storeResult?.stopAllocations || [500, 500, 500, 694]);
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [savedData, setSavedData] = useState(null);
+  
   const totalBreads = PRODUCTS.reduce((sum, p) => sum + p.qty, 0);
   const productTotalValue = PRODUCTS.reduce((sum, p) => sum + (p.qty * p.unitValue), 0);
-  const insuranceFee = productTotalValue * 0.20;
+  const insuranceFee = productTotalValue * 0.015; // 1.5%
 
   const handleAddFleet = (vId, change) => {
     if (isLocked) return;
@@ -35,6 +43,24 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       return { ...prev, [vId]: next };
     });
   };
+
+  const handleAllocationChange = (index, value) => {
+    const val = parseInt(value) || 0;
+    const newAllocations = [...stopAllocations];
+    newAllocations[index] = val;
+    setStopAllocations(newAllocations);
+  };
+
+  useEffect(() => {
+    // Adjust allocations array size when stops count changes
+    if (stopsCount > stopAllocations.length) {
+      setStopAllocations([...stopAllocations, ...Array(stopsCount - stopAllocations.length).fill(0)]);
+    } else if (stopsCount < stopAllocations.length) {
+      setStopAllocations(stopAllocations.slice(0, stopsCount));
+    }
+  }, [stopsCount]);
+
+  const allocatedTotal = stopAllocations.reduce((a,b)=>a+b, 0);
   
   const handleAddToCart = (eqId, change) => {
     if (isLocked) return;
@@ -62,11 +88,14 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       }
     });
 
-    const finalTotal = fleetTotal + equipTotal + (hasInsurance ? insuranceFee : 0);
-    return { equipTotal, fleetTotal, fleetCapacity, finalTotal };
+    const stopsCost = stopsCount > 1 ? (stopsCount - 1) * 100 : 0;
+    const extraKmCost = routeDistance > 50 ? (routeDistance - 50) * 2.50 : 0;
+
+    const finalTotal = fleetTotal + equipTotal + stopsCost + extraKmCost + (hasInsurance ? insuranceFee : 0);
+    return { equipTotal, fleetTotal, fleetCapacity, stopsCost, extraKmCost, finalTotal };
   };
 
-  const { equipTotal, fleetTotal, fleetCapacity, finalTotal } = calculateTotal();
+  const { equipTotal, fleetTotal, fleetCapacity, stopsCost, extraKmCost, finalTotal } = calculateTotal();
   const capacityPct = Math.min(100, (fleetCapacity / totalBreads) * 100);
   const isCapacityMet = fleetCapacity >= totalBreads;
 
@@ -75,13 +104,28 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       alert("Atenção: A capacidade da frota escolhida é menor que a quantidade total de pães (2.194 un). Adicione mais veículos.");
       return;
     }
-    setStoreResult({
+    if (allocatedTotal !== totalBreads) {
+      alert(`Atenção: A distribuição de carga não bate. Faltam/Sobram pães. Total: ${totalBreads}, Alocado: ${allocatedTotal}`);
+      return;
+    }
+
+    const payload = {
       cart,
       fleetCart,
       hasInsurance,
-      totals: { equipTotal, finalTotal, baseFreight: fleetTotal, insuranceFee: hasInsurance ? insuranceFee : 0 }
-    });
-    // Move para a proxima aba automaticamente
+      routeDistance,
+      stopsCount,
+      stopAllocations,
+      totals: { equipTotal, finalTotal, baseFreight: fleetTotal, stopsCost, extraKmCost, insuranceFee: hasInsurance ? insuranceFee : 0 }
+    };
+    
+    setSavedData(payload);
+    setShowInvoice(true);
+  };
+
+  const handleAcceptInvoice = () => {
+    setStoreResult(savedData);
+    setShowInvoice(false);
     setActiveTab('questionnaire');
   };
 
@@ -122,9 +166,65 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
               ))}
             </div>
 
+            {/* Configuração de Rota e Paradas */}
+            <div className="mt-6 border-t border-slate-700 pt-6">
+              <h4 className="font-bold text-slate-200 mb-4 flex items-center gap-2"><MapPin className="text-brand-primary"/> 2. Roteirização e Paradas</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-slate-900 border border-slate-600 p-4 rounded-lg">
+                  <label className="text-sm text-slate-400 block mb-1">Distância Total Estimada (km)</label>
+                  <input 
+                    type="number" 
+                    value={routeDistance}
+                    onChange={(e) => setRouteDistance(Number(e.target.value))}
+                    disabled={isLocked}
+                    min="1"
+                    className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2 focus:border-brand-primary outline-none"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">Até 50km isento. +R$2,50/km extra.</p>
+                </div>
+                <div className="bg-slate-900 border border-slate-600 p-4 rounded-lg">
+                  <label className="text-sm text-slate-400 block mb-1">Total de Paradas (Filiais)</label>
+                  <input 
+                    type="number" 
+                    value={stopsCount}
+                    onChange={(e) => setStopsCount(Number(e.target.value))}
+                    disabled={isLocked}
+                    min="1"
+                    className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2 focus:border-brand-primary outline-none"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">1ª parada isenta. +R$100,00 por parada adicional.</p>
+                </div>
+              </div>
+
+              {/* Distribuição da carga */}
+              <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 mb-2">
+                <div className="flex justify-between items-center mb-3 text-sm">
+                  <strong className="text-slate-300">Distribuição de Carga</strong>
+                  <span className={allocatedTotal === totalBreads ? "text-emerald-400" : "text-amber-400"}>
+                    Alocado: {allocatedTotal} / {totalBreads}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {stopAllocations.map((alloc, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 w-16">Parada {idx + 1}:</span>
+                      <input 
+                        type="number"
+                        value={alloc}
+                        onChange={(e) => handleAllocationChange(idx, e.target.value)}
+                        disabled={isLocked}
+                        min="0"
+                        className="flex-1 bg-slate-900 border border-slate-700 text-white rounded p-1.5 text-sm focus:border-brand-primary outline-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Veiculos de Frota */}
             <div className="mt-6 border-t border-slate-700 pt-6">
-              <h4 className="font-bold text-slate-200 mb-4">Dimensionamento de Frota (Múltiplos Veículos)</h4>
+              <h4 className="font-bold text-slate-200 mb-4 flex items-center gap-2"><Truck className="text-brand-primary"/> 3. Dimensionamento de Frota</h4>
               <p className="text-sm text-slate-400 mb-4">Escolha a frota necessária para suprir a demanda de <strong>{totalBreads} pães</strong>.</p>
               
               <div className="space-y-3 mb-6">
@@ -194,7 +294,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                 <label htmlFor="insurance" className="font-bold text-blue-300 flex items-center gap-2 cursor-pointer">
                   <ShieldCheck size={18} /> Plano de Seguro (Integridade 100%)
                 </label>
-                <p className="text-sm text-slate-400 mt-1">Garantia total contra quebra de cadeia do frio e sinistros. Taxa de 20% sobre o valor dos produtos transportados (Valor Declarado: R$ {productTotalValue.toFixed(2)}).</p>
+                <p className="text-sm text-slate-400 mt-1">Garantia total contra quebra de cadeia do frio e sinistros. Taxa de 1.5% sobre o valor dos produtos transportados (Valor Declarado: R$ {productTotalValue.toFixed(2)}).</p>
                 <span className="text-blue-400 font-bold text-sm block mt-2">+ R$ {insuranceFee.toFixed(2)} ao total</span>
               </div>
             </div>
@@ -202,7 +302,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
 
           <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
             <h3 className="font-bold text-lg mb-4 text-brand-secondary flex items-center gap-2">
-              <ShoppingCart size={20} /> 2. Contratação de Equipamentos
+              <ShoppingCart size={20} /> 4. Contratação de Equipamentos
             </h3>
             <p className="text-sm text-slate-400 mb-6">Se você já possui as caixas térmicas e placas eutéticas, não precisa adicionar nada. Caso contrário, adicione ao pacote da viagem:</p>
             
@@ -266,6 +366,19 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                 );
               })}
               <div className="border-b border-slate-700 pb-2"></div>
+
+              {stopsCost > 0 && (
+                <div className="flex justify-between items-center text-rose-300">
+                  <span>Taxa Paradas Extras ({stopsCount - 1}):</span>
+                  <span>R$ {stopsCost.toFixed(2)}</span>
+                </div>
+              )}
+              {extraKmCost > 0 && (
+                <div className="flex justify-between items-center text-rose-300">
+                  <span>Adicional KM (>50km):</span>
+                  <span>R$ {extraKmCost.toFixed(2)}</span>
+                </div>
+              )}
               
               {Object.entries(cart).map(([id, qty]) => {
                 if (qty === 0) return null;
@@ -280,7 +393,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
 
               {hasInsurance && (
                 <div className="flex justify-between items-center text-blue-400">
-                  <span className="truncate pr-4 flex items-center gap-1"><ShieldCheck size={14}/> Seguro de Carga (20%)</span>
+                  <span className="truncate pr-4 flex items-center gap-1"><ShieldCheck size={14}/> Seguro de Carga (1.5%)</span>
                   <span>R$ {insuranceFee.toFixed(2)}</span>
                 </div>
               )}
@@ -316,6 +429,14 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
         </div>
 
       </div>
+
+      {showInvoice && savedData && (
+        <InvoiceModal 
+          savedData={savedData} 
+          onAccept={handleAcceptInvoice} 
+          onClose={() => setShowInvoice(false)}
+        />
+      )}
     </div>
   );
 }
