@@ -2,16 +2,28 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 
+// Auto-build step for Render if dist/ does not exist
+const distPath = path.join(__dirname, 'dist');
+if (!fs.existsSync(distPath)) {
+  console.log('[TransLog 3D Server] "dist" folder not found. Running build...');
+  try {
+    execSync('npm run build', { stdio: 'inherit' });
+    console.log('[TransLog 3D Server] Build successful.');
+  } catch (err) {
+    console.error('[TransLog 3D Server] Build failed:', err);
+  }
+}
+
 const mimeTypes = {
   '.html': 'text/html; charset=UTF-8',
   '.js': 'text/javascript; charset=UTF-8',
-  '.jsx': 'text/javascript; charset=UTF-8',
   '.css': 'text/css; charset=UTF-8',
   '.json': 'application/json',
   '.png': 'image/png',
@@ -21,18 +33,22 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  console.log(`[TransLog 3D Server] Request: ${req.url}`);
-  
   let reqPath = req.url.split('?')[0];
   if (reqPath === '/') {
-    reqPath = '/standalone.html';
+    reqPath = '/index.html';
   }
 
-  let filePath = path.join(__dirname, reqPath);
+  let filePath = path.join(distPath, reqPath);
 
-  // Fallback to standalone.html for SPA routing
+  // Fallback to index.html for SPA routing
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(__dirname, 'standalone.html');
+    filePath = path.join(distPath, 'index.html');
+  }
+
+  // If index.html still doesn't exist, fallback to root error
+  if (!fs.existsSync(filePath)) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    return res.end('Error: dist/index.html not found. Build failed.');
   }
 
   const ext = path.extname(filePath).toLowerCase();
