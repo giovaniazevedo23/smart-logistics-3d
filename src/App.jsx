@@ -1,224 +1,138 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import CompanySelector from './components/CompanySelector';
-import Transport3DViewer from './components/Transport3DViewer';
-import ContainerPlan3D from './components/ContainerPlan3D';
-import TelemetryDashboard from './components/TelemetryDashboard';
-import AIForecastPanel from './components/AIForecastPanel';
-import DeliveryReportModal from './components/DeliveryReportModal';
+import { Package, Truck, AlertTriangle } from 'lucide-react';
 
-import { COMPANIES_DATA } from './data/companiesData';
-import { INITIAL_AI_FEEDBACKS, processAIFeedback } from './data/aiKnowledgeBase';
-import { Box, Layers, Cpu, Sparkles } from 'lucide-react';
+import BakeryDashboard from './components/BakeryDashboard';
+import FleetManager from './components/FleetManager';
+import LightTelemetry from './components/LightTelemetry';
 
-export default function App() {
-  const [companies, setCompanies] = useState(COMPANIES_DATA);
-  const [activeCompany, setActiveCompany] = useState(COMPANIES_DATA[0]);
-  const [feedbacks, setFeedbacks] = useState(INITIAL_AI_FEEDBACKS);
+import { DELIVERY_NODES, FLEET_VEHICLES, CURRENT_TRIP } from './data/bakeryData';
 
-  // Active view tab (3D Vehicle or 3D Container Plan)
-  const [active3DTab, setActive3DTab] = useState('vehicle'); // 'vehicle' | 'container'
+function App() {
+  const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
+  // steps: waiting -> loading -> transit -> unloading -> waiting (next node)
+  const [stepStatus, setStepStatus] = useState('waiting');
+  
+  const [selectedVehicleId, setSelectedVehicleId] = useState(FLEET_VEHICLES[0].id);
+  
+  const [currentTemp, setCurrentTemp] = useState(21.5);
+  const [etaMins, setEtaMins] = useState(0);
+  const [isAlert, setIsAlert] = useState(false);
 
-  // Telemetry real-time simulation state
-  const [isSimulating, setIsSimulating] = useState(true);
-  const [telemetryData, setTelemetryData] = useState({
-    currentTemp: COMPANIES_DATA[0].currentTemp,
-    targetTempMin: COMPANIES_DATA[0].targetTempMin,
-    targetTempMax: COMPANIES_DATA[0].targetTempMax,
-    humidity: COMPANIES_DATA[0].humidity
-  });
-
-  const [showReportModal, setShowReportModal] = useState(false);
-
-  // Synchronize telemetry state when user switches company
-  const handleSelectCompany = (comp) => {
-    setActiveCompany(comp);
-    setTelemetryData({
-      currentTemp: comp.currentTemp,
-      targetTempMin: comp.targetTempMin,
-      targetTempMax: comp.targetTempMax,
-      humidity: comp.humidity
-    });
-  };
-
-  // Real-time telemetry simulation interval
+  // Simulation logic for Temperature and ETA
   useEffect(() => {
-    if (!isSimulating) return;
+    let timer;
+    if (stepStatus === 'transit') {
+      // Simulate transit dynamics
+      timer = setInterval(() => {
+        setEtaMins(prev => Math.max(0, prev - 1));
+        
+        // Temperature fluctuations
+        setCurrentTemp(prev => {
+          const change = (Math.random() - 0.3) * 0.5; // Tends to increase slightly
+          const newTemp = prev + change;
+          
+          if (newTemp > CURRENT_TRIP.targetTemp.max || newTemp < CURRENT_TRIP.targetTemp.min) {
+            setIsAlert(true);
+          } else {
+            setIsAlert(false);
+          }
+          return newTemp;
+        });
+      }, 2000); // Fast simulation: 1 real sec = 1 ETA min approx
+    } else {
+      // Not in transit, reset or keep stable
+      if (etaMins === 0 && currentNodeIndex < DELIVERY_NODES.length - 1) {
+        setEtaMins(15 + Math.floor(Math.random() * 10)); // random 15-25 mins to next node
+      }
+    }
 
-    const interval = setInterval(() => {
-      setTelemetryData(prev => {
-        // Natural ambient thermal fluctuation (+/- 0.1°C)
-        const fluctuation = (Math.random() - 0.49) * 0.2;
-        const newTemp = parseFloat((prev.currentTemp + fluctuation).toFixed(1));
-        return {
-          ...prev,
-          currentTemp: newTemp
-        };
-      });
-    }, 4000);
+    return () => clearInterval(timer);
+  }, [stepStatus, currentNodeIndex, etaMins]);
 
-    return () => clearInterval(interval);
-  }, [isSimulating]);
+  const handleSimulateNext = () => {
+    if (currentNodeIndex >= DELIVERY_NODES.length - 1 && stepStatus === 'unloading') {
+      // Reached the end
+      setStepStatus('completed');
+      return;
+    }
 
-  // Simulate an intentional thermal anomaly (+4°C spike)
-  const handleSimulateAnomaly = () => {
-    setTelemetryData(prev => ({
-      ...prev,
-      currentTemp: parseFloat((prev.currentTemp + 4.2).toFixed(1))
-    }));
-  };
-
-  // Normalize temperature back to target range
-  const handleResetTemp = () => {
-    const ideal = (activeCompany.targetTempMin + activeCompany.targetTempMax) / 2;
-    setTelemetryData(prev => ({
-      ...prev,
-      currentTemp: parseFloat(ideal.toFixed(1))
-    }));
-  };
-
-  // Submit Feedback & Retrain AI Engine
-  const handleSubmitFeedback = (feedbackInput) => {
-    const { updatedCompany, updatedFeedbacks } = processAIFeedback(
-      activeCompany,
-      feedbackInput,
-      feedbacks
-    );
-
-    setActiveCompany(updatedCompany);
-    setFeedbacks(updatedFeedbacks);
-
-    // Update in companies list
-    setCompanies(prev => prev.map(c => c.id === updatedCompany.id ? updatedCompany : c));
+    if (stepStatus === 'waiting') {
+      setStepStatus('loading');
+    } else if (stepStatus === 'loading') {
+      setStepStatus('transit');
+    } else if (stepStatus === 'transit') {
+      setStepStatus('unloading');
+      setEtaMins(0);
+    } else if (stepStatus === 'unloading') {
+      setStepStatus('waiting');
+      setCurrentNodeIndex(prev => prev + 1);
+    }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* Top Sticky Header */}
-      <Navbar
-        activeCompany={activeCompany}
-        onOpenReport={() => setShowReportModal(true)}
-        isSimulating={isSimulating}
-        toggleSimulation={() => setIsSimulating(!isSimulating)}
-      />
-
-      {/* Main Page Content */}
-      <main style={{ flex: 1, padding: '24px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+    <div className="min-h-screen bg-brand-dark p-6">
+      <div className="max-w-7xl mx-auto">
         
-        {/* 1. Contracting Companies & 3D Fleet Showcase Selector */}
-        <CompanySelector
-          companies={companies}
-          activeCompany={activeCompany}
-          onSelectCompany={handleSelectCompany}
-        />
-
-        {/* 1.5. Transport Detailing Panel (Detalhamento do Transporte) */}
-        {activeCompany.details && (
-          <section className="glass-panel" style={{ marginBottom: '24px', padding: '20px' }}>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '16px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.5rem' }}>{activeCompany.logo}</span> Detalhamento do Transporte: {activeCompany.transportName}
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-              <div>
-                <h3 style={{ fontSize: '0.9rem', color: '#00f2fe', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Descrição & Função</h3>
-                <p style={{ color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5' }}>{activeCompany.details.description}</p>
-              </div>
-              
-              <div>
-                <h3 style={{ fontSize: '0.9rem', color: '#00f2fe', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Onde e Quando Utilizar</h3>
-                <ul style={{ color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5', paddingLeft: '20px', margin: 0 }}>
-                  {activeCompany.details.useCases.map((useCase, idx) => (
-                    <li key={idx} style={{ marginBottom: '4px' }}>{useCase}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 style={{ fontSize: '0.9rem', color: '#00f2fe', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Especificações Técnicas</h3>
-                <ul style={{ color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5', paddingLeft: '20px', margin: 0 }}>
-                  {activeCompany.details.specifications.map((spec, idx) => (
-                    <li key={idx} style={{ marginBottom: '4px' }}>{spec}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* 2. Interactive 3D Section Switcher (Veículo 3D vs Planta Interna do Contêiner) */}
-        <section style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                className={`tab-button ${active3DTab === 'vehicle' ? 'active' : ''}`}
-                onClick={() => setActive3DTab('vehicle')}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <Box size={16} color={active3DTab === 'vehicle' ? '#00f2fe' : undefined} />
-                Modelo 3D da Frota ({activeCompany.transportName})
-              </button>
-              <button
-                className={`tab-button ${active3DTab === 'container' ? 'active' : ''}`}
-                onClick={() => setActive3DTab('container')}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <Layers size={16} color={active3DTab === 'container' ? '#00f2fe' : undefined} />
-                Planta Virtual 3D Interna do Contêiner
-              </button>
-            </div>
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Sparkles size={14} color="#00f2fe" /> Tridimensionalidade Three.js WebGL
-            </span>
+        {/* Header */}
+        <header className="flex justify-between items-center mb-8 bg-brand-card p-6 rounded-xl border border-slate-800 shadow-lg">
+          <div>
+            <h1 className="text-2xl font-bold font-['Outfit'] tracking-tight flex items-center gap-2">
+              <span className="text-3xl text-brand-primary">🥖</span> PãoTrack <span className="text-brand-secondary font-light">| Distribuição Lean</span>
+            </h1>
+            <p className="text-slate-400 text-sm mt-1">Gestão e rastreamento em tempo real do Forno Central às Filiais</p>
           </div>
+          
+          <div className="text-right">
+            <div className="text-sm text-slate-400">Viagem Atual</div>
+            <div className="font-bold font-['JetBrains_Mono'] text-emerald-400">{CURRENT_TRIP.id}</div>
+          </div>
+        </header>
 
-          {/* 3D Render Viewers */}
-          {active3DTab === 'vehicle' ? (
-            <Transport3DViewer activeCompany={activeCompany} />
-          ) : (
-            <ContainerPlan3D activeCompany={activeCompany} />
-          )}
-        </section>
-
-        {/* 3. Real-Time Telemetry Dashboard (Temperature Gauge, GPS, Horários, Status) */}
-        <TelemetryDashboard
-          activeCompany={activeCompany}
-          telemetryData={telemetryData}
-          onSimulateAnomaly={handleSimulateAnomaly}
-          onResetTemp={handleResetTemp}
-          isSimulating={isSimulating}
+        {/* Main Pipeline Timeline */}
+        <BakeryDashboard 
+          nodes={DELIVERY_NODES} 
+          currentNodeIndex={currentNodeIndex} 
+          stepStatus={stepStatus} 
+          onSimulateNext={handleSimulateNext}
         />
 
-        {/* 4. AI Forecasting & Preventive Action Plans + Feedback Loop */}
-        <AIForecastPanel
-          activeCompany={activeCompany}
-          feedbacks={feedbacks}
-          onSubmitFeedback={handleSubmitFeedback}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Fleet Management */}
+          <FleetManager 
+            vehicles={FLEET_VEHICLES}
+            selectedVehicleId={selectedVehicleId}
+            onSelectVehicle={setSelectedVehicleId}
+          />
+          
+          {/* Low-cost Telemetry */}
+          <LightTelemetry 
+            currentTemp={currentTemp}
+            targetTemp={CURRENT_TRIP.targetTemp}
+            etaMins={etaMins}
+            isAlert={isAlert}
+          />
+        </div>
 
-      </main>
+        {/* Action Bottom Bar */}
+        <div className="mt-8 flex justify-center gap-4">
+           <button className="btn bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors border border-slate-700">
+             📥 Exportar Relatório Diário (PDF)
+           </button>
+           <button 
+              onClick={() => {
+                setCurrentNodeIndex(0);
+                setStepStatus('waiting');
+                setCurrentTemp(21.5);
+                setIsAlert(false);
+              }}
+              className="btn bg-brand-secondary hover:bg-blue-400 text-brand-dark font-semibold py-3 px-6 rounded-lg transition-colors border border-brand-secondary">
+             🔄 Reiniciar Ciclo de Entrega
+           </button>
+        </div>
 
-      {/* Footer */}
-      <footer style={{
-        textAlign: 'center',
-        padding: '20px',
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        fontSize: '0.82rem',
-        color: '#64748b',
-        background: 'rgba(7, 10, 19, 0.9)'
-      }}>
-        TransLog 3D © 2026 — Sistema de Rastreio, Telemetria e Inteligência Logística Preditiva
-      </footer>
-
-      {/* End-of-Trip Report Modal */}
-      {showReportModal && (
-        <DeliveryReportModal
-          activeCompany={activeCompany}
-          telemetryData={telemetryData}
-          onClose={() => setShowReportModal(false)}
-        />
-      )}
-
+      </div>
     </div>
   );
 }
+
+export default App;
