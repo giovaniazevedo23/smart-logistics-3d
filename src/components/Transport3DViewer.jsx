@@ -23,10 +23,10 @@ export default function Transport3DViewer({ activeCompany }) {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // 1. Scene setup
+    // 1. Scene setup (Studio Warm Background matching photo)
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0f1d);
-    scene.fog = new THREE.FogExp2(0x0a0f1d, 0.025);
+    scene.background = new THREE.Color(0x362f27);
+    scene.fog = new THREE.FogExp2(0x362f27, 0.015);
     sceneRef.current = scene;
 
     // 2. Camera setup
@@ -44,35 +44,31 @@ export default function Transport3DViewer({ activeCompany }) {
 
     container.appendChild(renderer.domElement);
 
-    // 4. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    // 4. Lighting (Warm Studio Setup)
+    const ambientLight = new THREE.AmbientLight(0xfff8ee, 0.85);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0x00f2fe, 1.5);
+    const dirLight = new THREE.DirectionalLight(0xfff5ea, 1.6);
     dirLight.position.set(20, 30, 20);
     dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
     scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0x8b5cf6, 0.8);
+    const fillLight = new THREE.DirectionalLight(0xeab308, 0.6);
     fillLight.position.set(-20, -10, -20);
     scene.add(fillLight);
 
-    // Grid Floor
-    const gridHelper = new THREE.GridHelper(40, 40, 0x00f2fe, 0x1e293b);
-    gridHelper.position.y = -0.01;
-    scene.add(gridHelper);
-
-    // Ground reflective plane
-    const groundGeo = new THREE.PlaneGeometry(60, 60);
+    // Studio reflective ground plane
+    const groundGeo = new THREE.PlaneGeometry(80, 80);
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x070a13,
-      roughness: 0.8,
+      color: 0x2b241e,
+      roughness: 0.75,
       metalness: 0.2
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
+    ground.position.y = 0;
     ground.receiveShadow = true;
     scene.add(ground);
 
@@ -84,35 +80,44 @@ export default function Transport3DViewer({ activeCompany }) {
     // Build model based on transportType
     buildVehicle3DModel(activeCompany.transportType, vehicleGroup, activeCompany.color);
 
-    // Interactive mouse drag controls
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
+    // Interactive mouse hover & drag rotation control
+    let lastMouseX = 0;
+    let lastMouseY = 0;
 
-    const onMouseDown = (e) => {
-      isDragging = true;
-      previousMousePosition = { x: e.clientX, y: e.clientY };
+    const onPointerMove = (e) => {
+      if (!vehicleGroupRef.current) return;
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      if (lastMouseX !== 0) {
+        const deltaX = mouseX - lastMouseX;
+        const deltaY = mouseY - lastMouseY;
+
+        vehicleGroupRef.current.rotation.y += deltaX * 0.008;
+        vehicleGroupRef.current.rotation.x += deltaY * 0.004;
+
+        // Limit pitch angle
+        vehicleGroupRef.current.rotation.x = Math.max(-0.4, Math.min(0.4, vehicleGroupRef.current.rotation.x));
+      }
+
+      lastMouseX = mouseX;
+      lastMouseY = mouseY;
     };
 
-    const onMouseMove = (e) => {
-      if (!isDragging || !vehicleGroupRef.current) return;
-      const deltaX = e.clientX - previousMousePosition.x;
-      const deltaY = e.clientY - previousMousePosition.y;
-
-      vehicleGroupRef.current.rotation.y += deltaX * 0.008;
-      vehicleGroupRef.current.rotation.x += deltaY * 0.004;
-
-      // Limit pitch angle
-      vehicleGroupRef.current.rotation.x = Math.max(-0.5, Math.min(0.5, vehicleGroupRef.current.rotation.x));
-
-      previousMousePosition = { x: e.clientX, y: e.clientY };
+    const onPointerLeave = () => {
+      lastMouseX = 0;
+      lastMouseY = 0;
     };
-
-    const onMouseUp = () => { isDragging = false; };
 
     const domEl = renderer.domElement;
-    domEl.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    domEl.addEventListener('mousemove', onPointerMove);
+    domEl.addEventListener('mouseleave', onPointerLeave);
+    domEl.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches.length > 0) {
+        onPointerMove(e.touches[0]);
+      }
+    });
 
     // Animation Loop
     let clock = new THREE.Clock();
@@ -120,8 +125,8 @@ export default function Transport3DViewer({ activeCompany }) {
       animFrameRef.current = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      if (vehicleGroupRef.current && autoRotateRef.current && !isDragging) {
-        vehicleGroupRef.current.rotation.y += 0.005;
+      if (vehicleGroupRef.current && autoRotateRef.current && lastMouseX === 0) {
+        vehicleGroupRef.current.rotation.y += 0.004;
       }
 
       // Floating / animation effect
@@ -498,6 +503,64 @@ function createCabDoorTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 
+// 3. Generate Volkswagen Constellation Front Grille Texture with VW Chrome Logo
+function createVWGrilleTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, 512, 512);
+
+  ctx.strokeStyle = '#1f2937';
+  ctx.lineWidth = 4;
+  for (let x = 0; x < 512; x += 16) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+  }
+  for (let y = 0; y < 512; y += 16) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
+  }
+
+  ctx.fillStyle = '#374151';
+  ctx.fillRect(20, 110, 472, 18);
+  ctx.fillRect(20, 240, 472, 18);
+  ctx.fillRect(20, 370, 472, 18);
+
+  // VW Chrome Emblem
+  const cx = 256;
+  const cy = 240;
+  const r = 90;
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath(); ctx.arc(cx, cy, r - 12, 0, Math.PI * 2); ctx.fill();
+
+  ctx.strokeStyle = '#f8fafc';
+  ctx.lineWidth = 14;
+  ctx.lineCap = 'round';
+
+  // V
+  ctx.beginPath();
+  ctx.moveTo(cx - 36, cy - 42);
+  ctx.lineTo(cx, cy - 2);
+  ctx.lineTo(cx + 36, cy - 42);
+  ctx.stroke();
+
+  // W
+  ctx.beginPath();
+  ctx.moveTo(cx - 48, cy - 5);
+  ctx.lineTo(cx - 24, cy + 50);
+  ctx.lineTo(cx, cy + 10);
+  ctx.lineTo(cx + 24, cy + 50);
+  ctx.lineTo(cx + 50, cy - 5);
+  ctx.stroke();
+
+  return new THREE.CanvasTexture(canvas);
+}
+
 function buildVehicle3DModel(type, group, brandColorHex) {
   // Clear previous meshes
   while (group.children.length > 0) {
@@ -509,13 +572,14 @@ function buildVehicle3DModel(type, group, brandColorHex) {
   if (type === 'truck') {
     // ==========================================
     // REALISTIC SEMI-TRAILER REFRIGERATED TRUCK
-    // (Frigorífico Silva / BestBeef)
+    // (VW Constellation + Frigorífico Silva / BestBeef)
     // ==========================================
 
     const trailerSideTexture = createRefrigeratedTrailerTexture();
     const doorTexture = createCabDoorTexture();
+    const vwGrilleTexture = createVWGrilleTexture();
 
-    // --- 1. TRACTOR CABIN (Cavalo Mecânico Branco) ---
+    // --- 1. TRACTOR CABIN (VW Constellation Cavalo Mecânico) ---
     const cabGroup = new THREE.Group();
     cabGroup.position.set(-4.2, 0, 0);
 
@@ -530,6 +594,13 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     cabinMesh.position.set(0, 2.2, 0);
     cabinMesh.castShadow = true;
     cabGroup.add(cabinMesh);
+
+    // Dark Sun Visor (Quebra-Sol VW acima do para-brisa)
+    const visorGeo = new THREE.BoxGeometry(0.2, 0.25, 2.25);
+    const visorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.2 });
+    const visor = new THREE.Mesh(visorGeo, visorMat);
+    visor.position.set(-1.26, 3.4, 0);
+    cabGroup.add(visor);
 
     // Aerodynamic Roof Deflector / Wind Spoiler
     const spoilerShape = new THREE.Shape();
@@ -557,6 +628,15 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     glass.position.set(-1.26, 2.65, 0);
     cabGroup.add(glass);
 
+    // Windshield Wiper Blades (Limpadores de para-brisa)
+    const wiperMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+    [-0.5, 0.4].forEach(zPos => {
+      const wiper = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.7, 0.05), wiperMat);
+      wiper.rotation.z = -0.3;
+      wiper.position.set(-1.29, 2.5, zPos);
+      cabGroup.add(wiper);
+    });
+
     // Side Door Decal (BestBeef Logo on Door)
     const doorDecalMat = new THREE.MeshStandardMaterial({ map: doorTexture, roughness: 0.3 });
     const leftDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), doorDecalMat);
@@ -569,12 +649,13 @@ function buildVehicle3DModel(type, group, brandColorHex) {
     rightDoor.position.set(0.1, 2.1, -1.16);
     cabGroup.add(rightDoor);
 
-    // Front Grille & Bumper
-    const grilleGeo = new THREE.BoxGeometry(0.1, 0.9, 2.2);
-    const grilleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.4 });
-    const grille = new THREE.Mesh(grilleGeo, grilleMat);
-    grille.position.set(-1.26, 1.35, 0);
-    cabGroup.add(grille);
+    // Front Grille with VW Chrome Emblem
+    const grillePlaneGeo = new THREE.PlaneGeometry(1.0, 2.1);
+    const vwGrilleMat = new THREE.MeshStandardMaterial({ map: vwGrilleTexture, roughness: 0.3 });
+    const grilleMesh = new THREE.Mesh(grillePlaneGeo, vwGrilleMat);
+    grilleMesh.rotation.y = -Math.PI / 2;
+    grilleMesh.position.set(-1.26, 1.45, 0);
+    cabGroup.add(grilleMesh);
 
     // Headlights (Chrome Reflectors with LED Lenses)
     const headlightMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfef08a, emissiveIntensity: 0.5 });
