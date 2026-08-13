@@ -6,8 +6,6 @@ export default function Transport3DViewer({ activeCompany }) {
   const mountRef = useRef(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const [radarActive, setRadarActive] = useState(true);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
 
   // References for Three.js objects
   const sceneRef = useRef(null);
@@ -94,17 +92,6 @@ export default function Transport3DViewer({ activeCompany }) {
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
-      setIsHovering(true);
-
-      if (activeCompany.id === 'frigorifico-silva') {
-        // Calculate CSS 3D Tilt for the 2D image
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        const tiltX = -((mouseY - centerY) / centerY) * 12; // Max 12 degrees
-        const tiltY = ((mouseX - centerX) / centerX) * 12;
-        setTilt({ x: tiltX, y: tiltY });
-      }
-
       if (lastMouseX !== 0) {
         const deltaX = mouseX - lastMouseX;
         const deltaY = mouseY - lastMouseY;
@@ -123,10 +110,6 @@ export default function Transport3DViewer({ activeCompany }) {
     const onPointerLeave = () => {
       lastMouseX = 0;
       lastMouseY = 0;
-      setIsHovering(false);
-      if (activeCompany.id === 'frigorifico-silva') {
-        setTilt({ x: 0, y: 0 });
-      }
     };
 
     const domEl = renderer.domElement;
@@ -177,8 +160,9 @@ export default function Transport3DViewer({ activeCompany }) {
 
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      domEl.removeEventListener('mousemove', onPointerMove);
-      domEl.removeEventListener('mouseleave', onPointerLeave);
+      domEl.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('resize', handleResize);
       if (container && renderer.domElement) {
         container.removeChild(renderer.domElement);
@@ -240,10 +224,20 @@ export default function Transport3DViewer({ activeCompany }) {
         </div>
       </div>
 
-      {/* 3D Canvas Mount Point */}
-      <div ref={mountRef} style={{ width: '100%', height: '100%', cursor: 'grab', position: 'relative', zIndex: 1 }} />
+      {/* 3D Canvas Mount Point - Only show if not using Sketchfab iframe */}
+      <div 
+        ref={mountRef} 
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          cursor: 'grab', 
+          position: 'relative', 
+          zIndex: 1,
+          display: activeCompany.id === 'frigorifico-silva' ? 'none' : 'block'
+        }} 
+      />
 
-      {/* 2D Image Interactive Overlay (Tilt Effect) */}
+      {/* Sketchfab Iframe Embed for Frigorifico Silva */}
       {activeCompany.id === 'frigorifico-silva' && (
         <div style={{
           position: 'absolute',
@@ -251,25 +245,22 @@ export default function Transport3DViewer({ activeCompany }) {
           left: 0,
           width: '100%',
           height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'none',
-          perspective: '1200px',
           zIndex: 5
         }}>
-          <img 
-            src="/truck-bestbeef.png" 
-            alt="Frigorífico Silva Truck" 
-            style={{
-              maxWidth: '90%',
-              maxHeight: '80%',
-              objectFit: 'contain',
-              transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${isHovering ? 1.05 : 1.0})`,
-              transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out',
-              filter: 'drop-shadow(0px 20px 30px rgba(0,0,0,0.5))'
-            }}
-          />
+          <iframe 
+            title="Amostra - Caminhão Frigorifico Silva" 
+            frameBorder="0" 
+            allowFullScreen 
+            mozallowfullscreen="true" 
+            webkitallowfullscreen="true" 
+            allow="autoplay; fullscreen; xr-spatial-tracking" 
+            xr-spatial-tracking="true"
+            execution-while-out-of-viewport="true"
+            execution-while-not-rendered="true"
+            web-share="true" 
+            src="https://sketchfab.com/models/477df99208b349129de9e935827b2c25/embed?autostart=1&transparent=1&ui_controls=0&ui_infos=0&ui_watermark=0"
+            style={{ width: '100%', height: '100%' }}
+          ></iframe>
         </div>
       )}
 
@@ -285,10 +276,10 @@ export default function Transport3DViewer({ activeCompany }) {
         pointerEvents: 'none'
       }}>
         <span className="badge badge-cyan" style={{ pointerEvents: 'auto', backdropFilter: 'blur(8px)' }}>
-          <Sparkles size={12} /> Renderização Three.js WebGL 3D
+          <Sparkles size={12} /> {activeCompany.id === 'frigorifico-silva' ? 'Sketchfab 3D Model' : 'Renderização Three.js WebGL 3D'}
         </span>
         <span style={{ fontSize: '0.75rem', color: '#94a3b8', background: 'rgba(15, 23, 42, 0.7)', padding: '4px 10px', borderRadius: '20px' }}>
-          💡 Arraste com o mouse para girar o veículo em 360°
+          💡 {activeCompany.id === 'frigorifico-silva' ? 'Interaja com o modelo 3D usando o mouse' : 'Arraste com o mouse para girar o veículo em 360°'}
         </span>
       </div>
     </div>
