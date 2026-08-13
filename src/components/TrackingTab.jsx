@@ -6,7 +6,7 @@ import LightTelemetry from './LightTelemetry';
 import LiveMapRoute from './LiveMapRoute';
 import { DELIVERY_NODES, FLEET_VEHICLES, CURRENT_TRIP } from '../data/bakeryData';
 
-export default function TrackingTab() {
+export default function TrackingTab({ onLock, onReset }) {
   const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
   const [stepStatus, setStepStatus] = useState('waiting');
   const [selectedVehicleId, setSelectedVehicleId] = useState(FLEET_VEHICLES[0].id);
@@ -51,6 +51,7 @@ export default function TrackingTab() {
 
     if (stepStatus === 'waiting') {
       setStepStatus('loading');
+      if (onLock) onLock();
     } else if (stepStatus === 'loading') {
       setStepStatus('transit');
       setShowGeofence(false);
@@ -139,6 +140,7 @@ export default function TrackingTab() {
               setCurrentTemp(-15.5);
               setIsAlert(false);
               setShowGeofence(false);
+              if (onReset) onReset();
             }}
             className="btn bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors border border-slate-700">
            🔄 Reiniciar Ciclo de Entrega

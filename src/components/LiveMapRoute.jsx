@@ -78,6 +78,11 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
       markerRef.current = L.marker([WAYPOINTS[0].lat, WAYPOINTS[0].lng], { icon: truckIcon }).addTo(map);
 
       mapInstance.current = map;
+
+      // FIX: Force Leaflet to recalculate container size to avoid grey tiles and repeating
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 400);
     }
 
     return () => {
