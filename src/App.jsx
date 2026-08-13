@@ -6,7 +6,7 @@ import SwotTab from './components/SwotTab';
 import { CURRENT_TRIP } from './data/bakeryData';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('tracking'); // 'tracking' | 'questionnaire' | 'swot'
+  const [activeTab, setActiveTab] = useState('questionnaire'); // 'tracking' | 'questionnaire' | 'swot'
   const [questionnaireResult, setQuestionnaireResult] = useState(null);
 
   return (
@@ -31,17 +31,6 @@ function App() {
         {/* Tab Navigation */}
         <div className="flex flex-wrap gap-2 mb-8 bg-brand-card/50 p-2 rounded-xl border border-slate-800">
           <button 
-            onClick={() => setActiveTab('tracking')}
-            className={`flex-1 py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
-              activeTab === 'tracking' 
-                ? 'bg-brand-primary text-brand-dark shadow-md' 
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <Map size={20} /> [1] Rastreio & Rota Otimizada
-          </button>
-          
-          <button 
             onClick={() => setActiveTab('questionnaire')}
             className={`flex-1 py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
               activeTab === 'questionnaire' 
@@ -49,18 +38,33 @@ function App() {
                 : 'text-slate-400 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <ClipboardList size={20} /> [2] Diagnóstico Operacional
+            <ClipboardList size={20} /> [1] Onboarding do Frete
+          </button>
+
+          <button 
+            onClick={() => questionnaireResult && setActiveTab('tracking')}
+            disabled={!questionnaireResult}
+            className={`flex-1 py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
+              !questionnaireResult ? 'opacity-50 cursor-not-allowed bg-slate-900 text-slate-600' :
+              activeTab === 'tracking' 
+                ? 'bg-brand-primary text-brand-dark shadow-md' 
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Map size={20} /> [2] Rastreio Otimizado
           </button>
           
           <button 
-            onClick={() => setActiveTab('swot')}
+            onClick={() => questionnaireResult && setActiveTab('swot')}
+            disabled={!questionnaireResult}
             className={`flex-1 py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
+              !questionnaireResult ? 'opacity-50 cursor-not-allowed bg-slate-900 text-slate-600' :
               activeTab === 'swot' 
                 ? 'bg-emerald-500 text-brand-dark shadow-md' 
                 : 'text-slate-400 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <Target size={20} /> [3] Matriz SWOT & Plano de Ação
+            <Target size={20} /> [3] Matriz SWOT Estratégica
           </button>
         </div>
 

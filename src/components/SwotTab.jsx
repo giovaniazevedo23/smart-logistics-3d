@@ -1,8 +1,19 @@
 import React from 'react';
-import { Target, TrendingUp, AlertTriangle, ShieldX, Lightbulb } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, ShieldX, Lightbulb, CheckCircle2 } from 'lucide-react';
 
 export default function SwotTab({ questionnaireResult }) {
-  const isRisk = questionnaireResult === 'risks';
+  if (!questionnaireResult) {
+    return (
+      <div className="bg-brand-card rounded-xl p-12 border border-slate-800 shadow-xl text-center">
+        <Target className="text-slate-600 mx-auto mb-4" size={48} />
+        <h2 className="text-xl font-bold text-slate-400">Matriz SWOT Bloqueada</h2>
+        <p className="text-slate-500 mt-2">Você precisa concluir o Diagnóstico Operacional (Etapa 2) para o sistema gerar a sua Matriz Estratégica.</p>
+      </div>
+    );
+  }
+
+  const { answers, severity, status } = questionnaireResult;
+  const isRisk = severity !== 'Baixo';
 
   return (
     <div className="bg-brand-card rounded-xl p-8 border border-slate-800 shadow-xl max-w-6xl mx-auto animate-fade-in">
@@ -22,11 +33,16 @@ export default function SwotTab({ questionnaireResult }) {
           </h3>
           <ul className="space-y-3 text-emerald-100/80 text-sm">
             <li className="flex items-start gap-2">
-              <CheckCircle /> Dimensionamento enxuto da frota leve (Fiorino), garantindo excelente custo-benefício por quilômetro rodado.
+              <CheckCircle2 size={16} className="mt-0.5 text-emerald-500 flex-shrink-0" /> Dimensionamento da frota leve ({answers.veiculo === 'fiorino' ? 'Fiorino' : 'VUC'}), garantindo excelente custo-benefício.
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle /> Uso eficiente do sistema de frio passivo (Placas Eutéticas) eliminando a necessidade de motores de refrigeração caros para viagens curtas.
+              <CheckCircle2 size={16} className="mt-0.5 text-emerald-500 flex-shrink-0" /> Uso de {answers.conservacao === 'opcao_a' ? 'frio passivo (Placas Eutéticas) de alto rendimento' : 'refrigeração'}, adequado à distribuição urbana.
             </li>
+            {answers.conferencia === 'digital' && (
+              <li className="flex items-start gap-2">
+                <CheckCircle2 size={16} className="mt-0.5 text-emerald-500 flex-shrink-0" /> Conferência ágil via QR Code reduz o tempo de porta aberta nos PDVs.
+              </li>
+            )}
           </ul>
         </div>
 
@@ -37,11 +53,13 @@ export default function SwotTab({ questionnaireResult }) {
           </h3>
           <ul className="space-y-3 text-orange-100/80 text-sm">
             <li className="flex items-start gap-2">
-              <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" /> Restrição severa de tempo (Transit Time curto) devido à sensibilidade térmica do Pão Francês Cru.
+              <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" /> Restrição severa de tempo (Transit Time) devido à sensibilidade térmica do Pão Francês Cru.
             </li>
-            <li className="flex items-start gap-2">
-              <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" /> Falta de pulmão térmico: se a porta do baú for mantida aberta muito tempo durante a descarga, perde-se a inércia térmica.
-            </li>
+            {answers.sensores === 'nao' && (
+              <li className="flex items-start gap-2 text-orange-300">
+                <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" /> A medição manual de temperatura impede a ação preditiva durante a viagem.
+              </li>
+            )}
           </ul>
         </div>
 
@@ -57,6 +75,11 @@ export default function SwotTab({ questionnaireResult }) {
             <li className="flex items-start gap-2">
               <TrendingUp size={16} className="mt-0.5 flex-shrink-0" /> O uso de Geofencing para envio de alertas prévios de chegada otimiza os recursos de recepção das filiais.
             </li>
+            {answers.demanda === 'padrao' && (
+              <li className="flex items-start gap-2">
+                <TrendingUp size={16} className="mt-0.5 flex-shrink-0" /> A padronização da carga (1.694 unidades) permite previsibilidade perfeita de espaço e roteiro.
+              </li>
+            )}
           </ul>
         </div>
 
@@ -69,9 +92,14 @@ export default function SwotTab({ questionnaireResult }) {
             <li className="flex items-start gap-2">
               <ShieldX size={16} className="mt-0.5 flex-shrink-0" /> Riscos de tráfego intenso nos grandes centros urbanos em horários de pico prejudicando o ETA.
             </li>
+            {answers.horario === 'comercial' && (
+              <li className="flex items-start gap-2 text-rose-300">
+                <ShieldX size={16} className="mt-0.5 flex-shrink-0" /> A escolha da Janela Comercial expõe a frota a longos engarrafamentos e calor elevado.
+              </li>
+            )}
             {isRisk && (
               <li className="flex items-start gap-2 text-rose-300 font-semibold bg-rose-900/40 p-2 rounded">
-                <ShieldX size={16} className="mt-0.5 flex-shrink-0" /> AVALIAÇÃO DE RISCO ATIVA: O plano submetido possui falhas que podem levar à quebra do isolamento térmico (-10°C).
+                <ShieldX size={16} className="mt-0.5 flex-shrink-0" /> STATUS: {status}. Há falhas severas na estratégia configurada para este frete.
               </li>
             )}
           </ul>
@@ -87,31 +115,28 @@ export default function SwotTab({ questionnaireResult }) {
         </h3>
         
         <div className="relative z-10 space-y-4">
-          <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
-            <strong className="text-white block mb-1">Dica Estratégica #1:</strong>
-            <p className="text-slate-300 text-sm">Ajustar a janela de carregamento para as 05:30. Isso evita a retenção no trânsito urbano matutino, otimizando o consumo de combustível da Fiorino e preservando a placa eutética.</p>
-          </div>
+          {answers.horario === 'comercial' && (
+            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
+              <strong className="text-white block mb-1">Dica Estratégica (Janela Comercial):</strong>
+              <p className="text-slate-300 text-sm">Ajustar a janela de carregamento para as 05:30 (Off-Peak). Isso evita a retenção no trânsito urbano matutino, otimizando o consumo de combustível e preservando a placa eutética.</p>
+            </div>
+          )}
           
-          {isRisk ? (
+          {answers.conservacao === 'opcao_c' && (
              <div className="bg-rose-900/20 p-4 rounded-lg border border-rose-500/50">
-               <strong className="text-rose-400 block mb-1">Ação Mitigadora Imediata:</strong>
-               <p className="text-slate-300 text-sm">Como houve reprovação em um dos pilares do diagnóstico, recomendamos o pré-resfriamento do baú utilitário a -22°C por pelo menos 1h antes do carregamento para gerar um "pulmão térmico" de segurança.</p>
+               <strong className="text-rose-400 block mb-1">Ação Mitigadora Crítica (Acondicionamento):</strong>
+               <p className="text-slate-300 text-sm">O transporte em caixas plásticas abertas vai destruir o produto. Adicione caixas isotérmicas EPP e pelo menos 2 placas de Gelox congeladas a -20°C por caixa imediatamente.</p>
              </div>
-          ) : (
+          )}
+
+          {!isRisk && answers.horario === 'off_peak' && (
             <div className="bg-emerald-900/20 p-4 rounded-lg border border-emerald-500/50">
-               <strong className="text-emerald-400 block mb-1">Manutenção de Padrão:</strong>
-               <p className="text-slate-300 text-sm">O plano foi aprovado. A prioridade agora é garantir que as filiais confirmem o recebimento do alerta de Geofencing para descarregar os 1.694 pães em menos de 10 minutos por ponto.</p>
+               <strong className="text-emerald-400 block mb-1">Manutenção de Padrão Lean:</strong>
+               <p className="text-slate-300 text-sm">A estratégia está ótima! A prioridade agora é garantir que as filiais confirmem o recebimento do alerta de Geofencing para descarregar os pães em menos de 10 minutos por ponto, aproveitando o tráfego favorável.</p>
              </div>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-// Simple icon for strengths
-function CheckCircle() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 mt-0.5 flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
   );
 }
