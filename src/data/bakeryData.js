@@ -1,8 +1,8 @@
 export const DELIVERY_NODES = [
   { id: 'cd', name: 'CD (Fábrica Central)', type: 'cd', status: 'completed', quantity: 1694 },
   { id: 'filial1', name: 'Filial 1 (309 un)', type: 'branch', status: 'pending', quantity: 309 },
-  { id: 'filial2', name: 'Filial 2 (460 un)', type: 'branch', status: 'pending', quantity: 460 },
   { id: 'filial3', name: 'Filial 3 (410 un)', type: 'branch', status: 'pending', quantity: 410 },
+  { id: 'filial2', name: 'Filial 2 (460 un)', type: 'branch', status: 'pending', quantity: 460 },
   { id: 'filial4', name: 'Filial 4 (515 un)', type: 'branch', status: 'pending', quantity: 515 }
 ];
 
