@@ -24,9 +24,16 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
     return storeResult?.products || PRODUCTS;
   });
   const [isAutonomous, setIsAutonomous] = useState(storeResult?.isAutonomous || false);
+  const [selectedPlan, setSelectedPlan] = useState(storeResult?.selectedPlan || 'none');
   const [cart, setCart] = useState(storeResult?.cart || {});
   const [fleetCart, setFleetCart] = useState(storeResult?.fleetCart || { fiorino: 1 });
   const [hasInsurance, setHasInsurance] = useState(storeResult?.hasInsurance || false);
+
+  useEffect(() => {
+    if (selectedPlan !== 'none') {
+      setHasInsurance(true);
+    }
+  }, [selectedPlan]);
   
   // New Freight Logic
   const [routeDistance, setRouteDistance] = useState(storeResult?.routeDistance || 50);
@@ -152,11 +159,35 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
     const stopsCost = stopsCount > 1 ? (stopsCount - 1) * 100 : 0;
     const extraKmCost = routeDistance > 50 ? (routeDistance - 50) * 2.50 : 0;
 
-    const finalTotal = fleetTotal + equipTotal + stopsCost + extraKmCost + (hasInsurance ? insuranceFee : 0);
-    return { equipTotal, fleetTotal, fleetCapacity, stopsCost, extraKmCost, finalTotal };
+    // Calculate freight discount
+    let discountPercent = 0;
+    if (selectedPlan === 'basic') discountPercent = 0.10;
+    else if (selectedPlan === 'premium') discountPercent = 0.20;
+    else if (selectedPlan === 'gold') discountPercent = 0.30;
+
+    const baseFreightOriginal = fleetTotal + stopsCost + extraKmCost;
+    const freightDiscount = baseFreightOriginal * discountPercent;
+    const baseFreightDiscounted = baseFreightOriginal - freightDiscount;
+
+    // Insurance: free if any plan is selected
+    const effectiveInsuranceFee = selectedPlan !== 'none' ? 0 : insuranceFee;
+    const finalInsuranceFee = hasInsurance ? effectiveInsuranceFee : 0;
+
+    const finalTotal = baseFreightDiscounted + equipTotal + finalInsuranceFee;
+
+    return { 
+      equipTotal, 
+      fleetTotal, 
+      fleetCapacity, 
+      stopsCost, 
+      extraKmCost, 
+      freightDiscount, 
+      finalTotal, 
+      insuranceFee: finalInsuranceFee 
+    };
   };
 
-  const { equipTotal, fleetTotal, fleetCapacity, stopsCost, extraKmCost, finalTotal } = calculateTotal();
+  const { equipTotal, fleetTotal, fleetCapacity, stopsCost, extraKmCost, freightDiscount, finalTotal, insuranceFee: finalInsuranceFee } = calculateTotal();
   const capacityPct = totalBreads > 0 ? Math.min(100, (fleetCapacity / totalBreads) * 100) : 100;
   const isCapacityMet = fleetCapacity >= totalBreads;
 
@@ -179,7 +210,16 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       stopAllocations,
       products,
       isAutonomous,
-      totals: { equipTotal, finalTotal, baseFreight: fleetTotal, stopsCost, extraKmCost, insuranceFee: hasInsurance ? insuranceFee : 0 }
+      selectedPlan,
+      totals: { 
+        equipTotal, 
+        finalTotal, 
+        baseFreight: fleetTotal, 
+        stopsCost, 
+        extraKmCost, 
+        freightDiscount, 
+        insuranceFee: finalInsuranceFee 
+      }
     };
     
     setSavedData(payload);
@@ -523,9 +563,109 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
             </div>
           </div>
 
+          {/* Card: Planos de Assinatura */}
+          <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
+            <h3 className="font-bold text-lg mb-2 text-brand-secondary flex items-center gap-2">
+              💳 Planos de Assinatura Mensal
+            </h3>
+            <p className="text-sm text-slate-400 mb-6">
+              Nossos planos foram desenhados para atender desde pequenas padarias em fase de teste até redes de grande volume, garantindo previsibilidade de receita para a nossa startup e economia real de frete para o seu negócio.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Opção Sem Fidelidade */}
+              <div 
+                onClick={() => !isLocked && setSelectedPlan('none')}
+                className={`cursor-pointer p-4 rounded-lg border transition-all flex flex-col justify-between ${
+                  selectedPlan === 'none' 
+                    ? 'border-slate-400 bg-slate-900 shadow-md' 
+                    : 'border-slate-700 bg-slate-900/40 hover:bg-slate-900/60'
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <strong className="text-slate-200">Sem Fidelidade</strong>
+                    <span className="text-xs text-slate-400">Normal</span>
+                  </div>
+                  <p className="text-xs text-slate-400">Seguir com o preço padrão sem contrato mensal ou descontos adicionais.</p>
+                </div>
+                <div className="text-right mt-4">
+                  <span className="font-bold text-sm text-slate-300">R$ 0,00</span>
+                </div>
+              </div>
+
+              {/* Opção Plano Básico */}
+              <div 
+                onClick={() => !isLocked && setSelectedPlan('basic')}
+                className={`cursor-pointer p-4 rounded-lg border transition-all flex flex-col justify-between ${
+                  selectedPlan === 'basic' 
+                    ? 'border-emerald-500 bg-emerald-950/20 shadow-md shadow-emerald-900/10' 
+                    : 'border-slate-700 bg-slate-900/40 hover:bg-slate-900/60'
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <strong className="text-emerald-400">Plano BÁSICO</strong>
+                    <span className="text-xs text-emerald-400 font-bold bg-emerald-900/30 px-1.5 py-0.5 rounded">10% OFF</span>
+                  </div>
+                  <p className="text-xs text-slate-400">Ideal para microempresas validando a operação. Inclui seguro básico, monitoramento de até 2 filiais e suporte via ticket.</p>
+                </div>
+                <div className="text-right mt-4 flex justify-between items-end">
+                  <span className="text-[10px] text-emerald-400 font-mono">🛡️ Seguro Incluso</span>
+                  <span className="font-bold text-sm text-emerald-300">R$ 149,00/mês</span>
+                </div>
+              </div>
+
+              {/* Opção Plano Premium */}
+              <div 
+                onClick={() => !isLocked && setSelectedPlan('premium')}
+                className={`cursor-pointer p-4 rounded-lg border transition-all flex flex-col justify-between relative overflow-hidden ${
+                  selectedPlan === 'premium' 
+                    ? 'border-brand-secondary bg-blue-950/20 shadow-md shadow-blue-900/10' 
+                    : 'border-slate-700 bg-slate-900/40 hover:bg-slate-900/60'
+                }`}
+              >
+                <div className="absolute top-0 right-0 bg-brand-secondary text-brand-dark font-bold text-[8px] px-2 py-0.5 uppercase tracking-wider rounded-bl">Recomendado</div>
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <strong className="text-brand-secondary">Plano PREMIUM</strong>
+                    <span className="text-xs text-brand-secondary font-bold bg-blue-900/30 px-1.5 py-0.5 rounded">20% OFF</span>
+                  </div>
+                  <p className="text-xs text-slate-400">Para redes médias (4 a 6 filiais). Inclui Telemetria Bluetooth IoT ativa, alertas por geocerca a 500m, assistente inteligente e seguro completo + garantia de descarte térmico.</p>
+                </div>
+                <div className="text-right mt-4 flex justify-between items-end">
+                  <span className="text-[10px] text-brand-secondary font-mono">📡 IoT + Seguro Total</span>
+                  <span className="font-bold text-sm text-brand-secondary">R$ 299,00/mês</span>
+                </div>
+              </div>
+
+              {/* Opção Plano Gold */}
+              <div 
+                onClick={() => !isLocked && setSelectedPlan('gold')}
+                className={`cursor-pointer p-4 rounded-lg border transition-all flex flex-col justify-between ${
+                  selectedPlan === 'gold' 
+                    ? 'border-brand-primary bg-amber-950/20 shadow-md shadow-amber-900/10' 
+                    : 'border-slate-700 bg-slate-900/40 hover:bg-slate-900/60'
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <strong className="text-brand-primary">Plano GOLD</strong>
+                    <span className="text-xs text-brand-primary font-bold bg-amber-900/30 px-1.5 py-0.5 rounded">30% OFF</span>
+                  </div>
+                  <p className="text-xs text-slate-400">Para alta escala. Emissão ilimitada de SWOT/FOFA com relatórios mensais, torre de controle 24/7, roteirização inteligente e monitoramento ilimitado.</p>
+                </div>
+                <div className="text-right mt-4 flex justify-between items-end">
+                  <span className="text-[10px] text-brand-primary font-mono">👑 Gestor Dedicado</span>
+                  <span className="font-bold text-sm text-brand-primary">R$ 499,00/mês</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
             <h3 className="font-bold text-lg mb-4 text-brand-secondary flex items-center gap-2">
-              <ShoppingCart size={20} /> 4. Contratação de Equipamentos
+              <ShoppingCart size={20} /> 5. Contratação de Equipamentos
             </h3>
             <p className="text-sm text-slate-400 mb-6">Se você já possui as caixas térmicas e placas eutéticas, não precisa adicionar nada. Caso contrário, adicione ao pacote da viagem:</p>
             
@@ -616,13 +756,27 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
 
               {hasInsurance && (
                 <div className="flex justify-between items-center text-blue-400">
-                  <span className="truncate pr-4 flex items-center gap-1"><ShieldCheck size={14}/> Seguro de Carga (1.5%)</span>
-                  <span>R$ {insuranceFee.toFixed(2)}</span>
+                  <span className="truncate pr-4 flex items-center gap-1"><ShieldCheck size={14}/> Seguro de Carga</span>
+                  <span>{selectedPlan !== 'none' ? 'Grátis (Incluso)' : `R$ ${insuranceFee.toFixed(2)}`}</span>
+                </div>
+              )}
+
+              {freightDiscount > 0 && (
+                <div className="flex justify-between items-center text-emerald-400 font-semibold">
+                  <span>Desconto de Assinatura ({selectedPlan === 'basic' ? '10%' : selectedPlan === 'premium' ? '20%' : '30%'}):</span>
+                  <span>- R$ {freightDiscount.toFixed(2)}</span>
+                </div>
+              )}
+
+              {selectedPlan !== 'none' && (
+                <div className="flex justify-between items-center text-slate-400 text-xs border border-slate-800 p-2 rounded bg-slate-950/40">
+                  <span>Assinatura Mensal:</span>
+                  <span className="font-bold text-slate-300">R$ {selectedPlan === 'basic' ? '149,00' : selectedPlan === 'premium' ? '299,00' : '499,00'} / mês</span>
                 </div>
               )}
 
               <div className="border-t border-slate-700 pt-4 flex justify-between items-center">
-                <span className="text-slate-200 font-bold text-lg">Custo Total:</span>
+                <span className="text-slate-200 font-bold text-lg">Custo Viagem:</span>
                 <span className="text-emerald-400 font-bold text-2xl">R$ {finalTotal.toFixed(2)}</span>
               </div>
             </div>

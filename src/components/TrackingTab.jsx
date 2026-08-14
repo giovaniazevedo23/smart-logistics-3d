@@ -8,7 +8,7 @@ import AiContextPanel from './AiContextPanel';
 import MethodologyManual from './MethodologyManual';
 import { DELIVERY_NODES, FLEET_VEHICLES, CURRENT_TRIP } from '../data/bakeryData';
 
-export default function TrackingTab({ onLock, onReset }) {
+export default function TrackingTab({ onLock, onReset, onTripComplete, storeResult }) {
   const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
   const [stepStatus, setStepStatus] = useState('waiting');
   const [selectedVehicleId, setSelectedVehicleId] = useState(FLEET_VEHICLES[0].id);
@@ -19,6 +19,9 @@ export default function TrackingTab({ onLock, onReset }) {
   const [toast, setToast] = useState({ visible: false, title: '', message: '' });
   const [showManual, setShowManual] = useState(false);
 
+  // Virtual Assistant speech state
+  const [assistantMessage, setAssistantMessage] = useState("Olá! Sou o assistente virtual SIT. Vou guiar você em tempo real durante esta viagem.");
+
   const showToast = (title, message) => {
     setToast({ visible: true, title, message });
     setTimeout(() => {
@@ -26,6 +29,45 @@ export default function TrackingTab({ onLock, onReset }) {
     }, 5000);
   };
 
+  const playAlertSound = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {
+      console.error("Audio API error", e);
+    }
+  };
+
+  const speakAndShow = (text) => {
+    setAssistantMessage(text);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pt-BR';
+      utterance.rate = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Speak on component mount
+  useEffect(() => {
+    speakAndShow("Olá! Sou o assistente virtual SIT. Vou guiar você em tempo real durante esta viagem.");
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Monitor temperature variations
   useEffect(() => {
     let timer;
     if (stepStatus === 'transit') {
@@ -53,6 +95,60 @@ export default function TrackingTab({ onLock, onReset }) {
     }
     return () => clearInterval(timer);
   }, [stepStatus, currentNodeIndex, etaMins, showGeofence]);
+
+  // Audio alert and Speech Alert on temperature alarm
+  useEffect(() => {
+    if (isAlert && stepStatus === 'transit') {
+      speakAndShow("Alerta térmico! Variação crítica de temperatura detectada nas caixas de carga.");
+      playAlertSound();
+    }
+  }, [isAlert, stepStatus]);
+
+  // Geofence Speech Alert
+  useEffect(() => {
+    if (showGeofence && stepStatus === 'transit') {
+      speakAndShow(`Aviso de geocerca! Próxima filial a menos de quinhentos metros. Prepare os freezers.`);
+    }
+  }, [showGeofence, stepStatus]);
+
+  // Speech on status change and trigger history save on complete
+  useEffect(() => {
+    if (stepStatus === 'loading') {
+      speakAndShow(`Carregamento iniciado na ${DELIVERY_NODES[currentNodeIndex].name}. Conferindo produtos.`);
+    } else if (stepStatus === 'transit') {
+      speakAndShow(`Veículo em trânsito. A caminho de ${DELIVERY_NODES[currentNodeIndex + 1]?.name || 'próxima parada'}. Acompanhe pelo mapa.`);
+    } else if (stepStatus === 'unloading') {
+      speakAndShow(`Chegamos ao destino: ${DELIVERY_NODES[currentNodeIndex].name}. Iniciando conferência e descarga rápida.`);
+    } else if (stepStatus === 'completed') {
+      speakAndShow("Excelente trabalho! Ciclo de entrega finalizado com sucesso. Viagem registrada no histórico de KPIs.");
+      if (onTripComplete && storeResult) {
+        const tBreads = storeResult.products.reduce((s, p) => s + p.qty, 0);
+        const pTotalValue = storeResult.products.reduce((s, p) => s + (p.qty * p.unitValue), 0);
+        
+        let fleetCapacity = 0;
+        if (storeResult.isAutonomous) {
+          fleetCapacity = tBreads;
+        } else {
+          // Calculate capacity from selected vehicles in store
+          fleetCapacity = 1000; // default fiorino, or check fleetCart
+          if (storeResult.fleetCart) {
+            fleetCapacity = 0;
+            if (storeResult.fleetCart.fiorino) fleetCapacity += storeResult.fleetCart.fiorino * 1000;
+            if (storeResult.fleetCart.vuc) fleetCapacity += storeResult.fleetCart.vuc * 2500;
+            if (storeResult.fleetCart.hr) fleetCapacity += storeResult.fleetCart.hr * 4000;
+          }
+        }
+
+        onTripComplete({
+          ...storeResult,
+          id: storeResult.id || `SIT-${Math.floor(1000 + Math.random() * 9000)}`,
+          totalBreads: tBreads,
+          productTotalValue: pTotalValue,
+          fleetCapacity: fleetCapacity || tBreads
+        });
+      }
+    }
+  }, [stepStatus, currentNodeIndex]);
 
   const handleSimulateNext = () => {
     if (currentNodeIndex >= DELIVERY_NODES.length - 1 && stepStatus === 'unloading') {
@@ -109,9 +205,26 @@ export default function TrackingTab({ onLock, onReset }) {
         </div>
       )}
 
-      {/* IA Context Panel */}
-      <div className="mb-6">
-        <AiContextPanel currentNodeIndex={currentNodeIndex} />
+      {/* IA Context Panel & Assistente Robot */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2">
+          <AiContextPanel currentNodeIndex={currentNodeIndex} />
+        </div>
+        <div className="bg-brand-card border border-slate-800 p-4 rounded-xl flex items-center gap-4 relative shadow-lg">
+          <div className="relative w-20 h-20 flex-shrink-0 bg-slate-900 rounded-lg p-1 border border-slate-700 flex items-center justify-center">
+            <img src="/robot_assistant.png" alt="SIT Assistant" className="w-full h-full object-contain rounded" />
+            <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 w-3.5 h-3.5 rounded-full border-2 border-brand-card animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-brand-secondary flex items-center gap-1.5">
+              🤖 Assistente Virtual SIT
+            </h4>
+            <div className="relative bg-slate-900 text-slate-200 text-xs rounded-lg p-2.5 mt-1 border border-slate-750">
+              <div className="absolute top-3 -left-1.5 w-3 h-3 bg-slate-900 border-l border-b border-slate-750 rotate-45" />
+              <p className="leading-relaxed font-sans">{assistantMessage}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-between items-center mb-4">

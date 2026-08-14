@@ -57,6 +57,12 @@ export default function InvoiceModal({ savedData, onAccept, onClose }) {
                 <span>R$ {totals.extraKmCost.toFixed(2)}</span>
               </div>
             )}
+            {totals.freightDiscount > 0 && (
+              <div className="flex justify-between text-emerald-600 font-bold">
+                <span>Desconto Assinatura ({savedData.selectedPlan === 'basic' ? '10%' : savedData.selectedPlan === 'premium' ? '20%' : '30%'}):</span>
+                <span>- R$ {totals.freightDiscount.toFixed(2)}</span>
+              </div>
+            )}
           </div>
 
           {/* Sessao 3: Equipamentos e Adicionais */}
@@ -66,12 +72,17 @@ export default function InvoiceModal({ savedData, onAccept, onClose }) {
               <span>Equipamentos Térmicos (EPP/Gelox):</span> 
               <span>R$ {totals.equipTotal.toFixed(2)}</span>
             </div>
-            {totals.insuranceFee > 0 && (
+            {savedData.selectedPlan !== 'none' ? (
+              <div className="flex justify-between text-emerald-600">
+                <span>Seguro Carga ({savedData.selectedPlan.toUpperCase()}):</span> 
+                <span>Grátis (Incluso)</span>
+              </div>
+            ) : totals.insuranceFee > 0 ? (
               <div className="flex justify-between">
                 <span>Seguro 100% Integridade (1.5%):</span> 
                 <span>R$ {totals.insuranceFee.toFixed(2)}</span>
               </div>
-            )}
+            ) : null}
           </div>
           
           {/* Total */}

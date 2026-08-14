@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Package, Map, Target, ClipboardList, ShoppingCart } from 'lucide-react';
+import { Package, Map, Target, ClipboardList, ShoppingCart, BarChart3 } from 'lucide-react';
 import TrackingTab from './components/TrackingTab';
 import QuestionnaireTab from './components/QuestionnaireTab';
 import SwotTab from './components/SwotTab';
 import StoreTab from './components/StoreTab';
+import HistoryTab from './components/HistoryTab';
 import { CURRENT_TRIP } from './data/bakeryData';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('store'); // 'store' | 'tracking' | 'questionnaire' | 'swot'
+  const [activeTab, setActiveTab] = useState('store'); // 'store' | 'tracking' | 'questionnaire' | 'swot' | 'history'
   const [storeResult, setStoreResult] = useState(null);
   const [questionnaireResult, setQuestionnaireResult] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [completedTrips, setCompletedTrips] = useState([]);
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-brand-dark bg-blend-soft-light">
@@ -85,6 +87,17 @@ function App() {
           >
             <Map size={20} /> [4] Rastreio Otimizado
           </button>
+
+          <button 
+            onClick={() => setActiveTab('history')}
+            className={`flex-1 py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
+              activeTab === 'history' 
+                ? 'bg-purple-500 text-brand-dark shadow-md' 
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <BarChart3 size={20} /> [5] Histórico & KPIs
+          </button>
         </div>
 
         {/* Tab Content Rendering */}
@@ -115,7 +128,22 @@ function App() {
             <TrackingTab 
               onLock={() => setIsLocked(true)}
               onReset={() => setIsLocked(false)}
+              onTripComplete={(tripData) => {
+                setCompletedTrips(prev => [
+                  ...prev,
+                  {
+                    ...tripData,
+                    id: tripData.id || `TRIP-${Math.floor(1000 + Math.random() * 9000)}`,
+                    date: new Date().toLocaleString('pt-BR'),
+                  }
+                ]);
+              }}
+              storeResult={storeResult}
             />
+          )}
+
+          {activeTab === 'history' && (
+            <HistoryTab trips={completedTrips} />
           )}
         </main>
 
