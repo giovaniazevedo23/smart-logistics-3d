@@ -18,11 +18,14 @@ function App() {
         
         {/* Header */}
         <header className="flex justify-between items-center mb-8 bg-brand-card p-6 rounded-xl border border-slate-800 shadow-lg">
-          <div>
-            <h1 className="text-2xl font-bold font-['Outfit'] tracking-tight flex items-center gap-2">
-              <span className="text-3xl text-brand-secondary">❄️</span> PãoTrack <span className="text-brand-secondary font-light">| SAGA SENAI - Bella The</span>
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">Gestão Lean e Rastreamento Térmico de Pão Francês Congelado</p>
+          <div className="flex items-center gap-4">
+            <img src="/sit-logo.png" alt="SIT Logo" className="h-16 w-auto rounded-lg bg-white p-1 shadow-md border border-slate-700" />
+            <div>
+              <h1 className="text-2xl font-bold font-['Outfit'] tracking-tight flex items-center gap-2">
+                <span>SIT</span> <span className="text-brand-secondary font-light">| Sistema Inteligente de Transporte</span>
+              </h1>
+              <p className="text-slate-400 text-sm mt-1">Gestão Lean e Rastreamento Térmico de Pão Francês Congelado</p>
+            </div>
           </div>
           
           <div className="text-right">

@@ -19,7 +19,7 @@ export default function InvoiceModal({ savedData, onAccept, onClose }) {
           </button>
           <Receipt size={40} className="mx-auto text-slate-700 mb-2" />
           <h2 className="text-xl font-bold uppercase tracking-widest text-slate-800">Nota Fiscal de Serviço</h2>
-          <p className="text-xs text-slate-500">Documento Auxiliar - Logística Bella The</p>
+          <p className="text-xs text-slate-500">Documento Auxiliar - SIT - Sistema Inteligente de Transporte</p>
           
           <div className="mt-4 text-left text-xs border border-slate-200 p-2 rounded bg-white">
             <p><strong>Nº:</strong> {invoiceNumber}</p>
@@ -53,7 +53,7 @@ export default function InvoiceModal({ savedData, onAccept, onClose }) {
             )}
             {totals.extraKmCost > 0 && (
               <div className="flex justify-between text-slate-600">
-                <span>Adicional de KM (>50km):</span> 
+                <span>Adicional de KM (&gt;50km):</span> 
                 <span>R$ {totals.extraKmCost.toFixed(2)}</span>
               </div>
             )}

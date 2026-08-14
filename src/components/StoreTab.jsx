@@ -375,7 +375,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
               )}
               {extraKmCost > 0 && (
                 <div className="flex justify-between items-center text-rose-300">
-                  <span>Adicional KM (>50km):</span>
+                  <span>Adicional KM (&gt;50km):</span>
                   <span>R$ {extraKmCost.toFixed(2)}</span>
                 </div>
               )}
