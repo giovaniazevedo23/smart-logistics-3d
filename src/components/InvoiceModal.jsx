@@ -43,7 +43,7 @@ export default function InvoiceModal({ savedData, onAccept, onClose }) {
             <h3 className="font-bold border-b border-slate-200 pb-1 mb-2 uppercase text-xs flex items-center gap-1"><Package size={14}/> Composição de Frete</h3>
             <div className="flex justify-between">
               <span>Custo Base (Veículos):</span> 
-              <span>R$ {totals.baseFreight.toFixed(2)}</span>
+              <span>{savedData.isAutonomous ? "R$ 0,00 (Autônomo)" : `R$ ${totals.baseFreight.toFixed(2)}`}</span>
             </div>
             {totals.stopsCost > 0 && (
               <div className="flex justify-between text-slate-600">

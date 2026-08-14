@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, PackagePlus, Calculator, Save, CheckCircle2, Lock, ShieldCheck, MapPin, Truck } from 'lucide-react';
+import { ShoppingCart, PackagePlus, Calculator, Save, CheckCircle2, Lock, ShieldCheck, MapPin, Truck, Plus, Trash2 } from 'lucide-react';
 import InvoiceModal from './InvoiceModal';
 
 const PRODUCTS = [
@@ -20,6 +20,10 @@ const FLEET = [
 ];
 
 export default function StoreTab({ storeResult, setStoreResult, setActiveTab, isLocked }) {
+  const [products, setProducts] = useState(() => {
+    return storeResult?.products || PRODUCTS;
+  });
+  const [isAutonomous, setIsAutonomous] = useState(storeResult?.isAutonomous || false);
   const [cart, setCart] = useState(storeResult?.cart || {});
   const [fleetCart, setFleetCart] = useState(storeResult?.fleetCart || { fiorino: 1 });
   const [hasInsurance, setHasInsurance] = useState(storeResult?.hasInsurance || false);
@@ -30,13 +34,20 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
   const [stopAllocations, setStopAllocations] = useState(storeResult?.stopAllocations || [500, 500, 500, 694]);
   const [showInvoice, setShowInvoice] = useState(false);
   const [savedData, setSavedData] = useState(null);
+
+  // Form state for adding custom product
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newProdName, setNewProdName] = useState('');
+  const [newProdQty, setNewProdQty] = useState(100);
+  const [newProdType, setNewProdType] = useState('Sensível (-18°C)');
+  const [newProdUnitValue, setNewProdUnitValue] = useState(0.50);
   
-  const totalBreads = PRODUCTS.reduce((sum, p) => sum + p.qty, 0);
-  const productTotalValue = PRODUCTS.reduce((sum, p) => sum + (p.qty * p.unitValue), 0);
+  const totalBreads = products.reduce((sum, p) => sum + p.qty, 0);
+  const productTotalValue = products.reduce((sum, p) => sum + (p.qty * p.unitValue), 0);
   const insuranceFee = productTotalValue * 0.015; // 1.5%
 
   const handleAddFleet = (vId, change) => {
-    if (isLocked) return;
+    if (isLocked || isAutonomous) return;
     setFleetCart(prev => {
       const current = prev[vId] || 0;
       const next = Math.max(0, current + change);
@@ -48,6 +59,50 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
     const val = parseInt(value) || 0;
     const newAllocations = [...stopAllocations];
     newAllocations[index] = val;
+    setStopAllocations(newAllocations);
+  };
+
+  const handleProductQtyChange = (pId, value) => {
+    if (isLocked) return;
+    const val = Math.max(0, parseInt(value) || 0);
+    setProducts(prev => prev.map(p => p.id === pId ? { ...p, qty: val } : p));
+  };
+
+  const handleRemoveProduct = (pId) => {
+    if (isLocked) return;
+    setProducts(prev => prev.filter(p => p.id !== pId));
+  };
+
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+    if (!newProdName.trim()) return;
+
+    const newProduct = {
+      id: `custom_${Date.now()}`,
+      name: newProdName.trim(),
+      qty: Math.max(1, parseInt(newProdQty) || 0),
+      type: newProdType,
+      unitValue: Math.max(0, parseFloat(newProdUnitValue) || 0)
+    };
+
+    setProducts(prev => [...prev, newProduct]);
+    
+    // Reset form
+    setNewProdName('');
+    setNewProdQty(100);
+    setNewProdType('Sensível (-18°C)');
+    setNewProdUnitValue(0.50);
+    setShowAddForm(false);
+  };
+
+  const handleAutoAllocate = () => {
+    if (isLocked || stopsCount <= 0) return;
+    const baseShare = Math.floor(totalBreads / stopsCount);
+    const remainder = totalBreads % stopsCount;
+    const newAllocations = Array(stopsCount).fill(baseShare);
+    if (stopsCount > 0) {
+      newAllocations[stopsCount - 1] += remainder;
+    }
     setStopAllocations(newAllocations);
   };
 
@@ -80,13 +135,19 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
 
     let fleetTotal = 0;
     let fleetCapacity = 0;
-    Object.entries(fleetCart).forEach(([id, qty]) => {
-      const v = FLEET.find(v => v.id === id);
-      if (v) {
-        fleetTotal += v.price * qty;
-        fleetCapacity += v.capacity * qty;
-      }
-    });
+    
+    if (isAutonomous) {
+      fleetTotal = 0;
+      fleetCapacity = totalBreads;
+    } else {
+      Object.entries(fleetCart).forEach(([id, qty]) => {
+        const v = FLEET.find(v => v.id === id);
+        if (v) {
+          fleetTotal += v.price * qty;
+          fleetCapacity += v.capacity * qty;
+        }
+      });
+    }
 
     const stopsCost = stopsCount > 1 ? (stopsCount - 1) * 100 : 0;
     const extraKmCost = routeDistance > 50 ? (routeDistance - 50) * 2.50 : 0;
@@ -96,16 +157,16 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
   };
 
   const { equipTotal, fleetTotal, fleetCapacity, stopsCost, extraKmCost, finalTotal } = calculateTotal();
-  const capacityPct = Math.min(100, (fleetCapacity / totalBreads) * 100);
+  const capacityPct = totalBreads > 0 ? Math.min(100, (fleetCapacity / totalBreads) * 100) : 100;
   const isCapacityMet = fleetCapacity >= totalBreads;
 
   const handleSave = () => {
     if (!isCapacityMet) {
-      alert("Atenção: A capacidade da frota escolhida é menor que a quantidade total de pães (2.194 un). Adicione mais veículos.");
+      alert(`Atenção: A capacidade da frota escolhida (${fleetCapacity} un) é menor que a quantidade total de produtos (${totalBreads} un). Adicione mais veículos ou use o Transporte Autônomo.`);
       return;
     }
     if (allocatedTotal !== totalBreads) {
-      alert(`Atenção: A distribuição de carga não bate. Faltam/Sobram pães. Total: ${totalBreads}, Alocado: ${allocatedTotal}`);
+      alert(`Atenção: A distribuição de carga não bate. Faltam/Sobram unidades. Total a transportar: ${totalBreads}, Alocado nas paradas: ${allocatedTotal}`);
       return;
     }
 
@@ -116,6 +177,8 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       routeDistance,
       stopsCount,
       stopAllocations,
+      products,
+      isAutonomous,
       totals: { equipTotal, finalTotal, baseFreight: fleetTotal, stopsCost, extraKmCost, insuranceFee: hasInsurance ? insuranceFee : 0 }
     };
     
@@ -151,17 +214,126 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
         {/* Lado Esquerdo: Produtos e Equipamentos */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-700">
-            <h3 className="font-bold text-lg mb-4 text-brand-secondary flex items-center gap-2">
-              <PackagePlus size={20} /> 1. Produtos a Transportar
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PRODUCTS.map(p => (
-                <div key={p.id} className="bg-slate-900 border border-slate-600 p-4 rounded-lg flex justify-between items-center opacity-70">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg text-brand-secondary flex items-center gap-2">
+                <PackagePlus size={20} /> 1. Produtos a Transportar
+              </h3>
+              {!isLocked && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="bg-brand-secondary/20 hover:bg-brand-secondary/40 text-brand-secondary text-xs font-bold px-3 py-1.5 rounded-lg border border-brand-secondary/30 transition-colors flex items-center gap-1"
+                >
+                  <Plus size={14} /> Cadastrar Produto
+                </button>
+              )}
+            </div>
+
+            {/* Form to add custom product */}
+            {showAddForm && (
+              <form onSubmit={handleAddProduct} className="bg-slate-900 border border-brand-secondary/40 p-4 rounded-lg mb-4 space-y-3 animate-fade-in">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <strong className="text-slate-200 block">{p.name}</strong>
-                    <span className="text-xs text-slate-400">{p.type}</span>
+                    <label className="text-xs text-slate-400 block mb-1">Nome do Produto</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Pão de Forma Congelado"
+                      value={newProdName}
+                      onChange={(e) => setNewProdName(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 text-white rounded p-1.5 text-sm focus:border-brand-secondary outline-none"
+                      required
+                    />
                   </div>
-                  <div className="font-bold text-brand-secondary">{p.qty} un</div>
+                  <div>
+                    <label className="text-xs text-slate-400 block mb-1">Tipo de Temperatura</label>
+                    <select
+                      value={newProdType}
+                      onChange={(e) => setNewProdType(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 text-white rounded p-1.5 text-sm focus:border-brand-secondary outline-none"
+                    >
+                      <option value="Sensível (-18°C)">Sensível (-18°C)</option>
+                      <option value="Moderado (-12°C)">Moderado (-12°C)</option>
+                      <option value="Refrigerado (4°C)">Refrigerado (4°C)</option>
+                      <option value="Seco / Temperatura Ambiente">Seco / Temp. Ambiente</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-400 block mb-1">Quantidade</label>
+                    <input
+                      type="number"
+                      value={newProdQty}
+                      onChange={(e) => setNewProdQty(parseInt(e.target.value) || 0)}
+                      min="1"
+                      className="w-full bg-slate-800 border border-slate-700 text-white rounded p-1.5 text-sm focus:border-brand-secondary outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 block mb-1">Valor Unitário (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newProdUnitValue}
+                      onChange={(e) => setNewProdUnitValue(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      className="w-full bg-slate-800 border border-slate-700 text-white rounded p-1.5 text-sm focus:border-brand-secondary outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-brand-secondary hover:bg-blue-400 text-brand-dark font-bold px-4 py-1.5 rounded text-xs transition-colors"
+                  >
+                    Adicionar Produto
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {products.map(p => (
+                <div key={p.id} className="bg-slate-900 border border-slate-700 p-4 rounded-lg flex justify-between items-center relative group">
+                  <div className="flex-1 pr-2">
+                    <strong className="text-slate-200 block text-sm truncate">{p.name}</strong>
+                    <span className="text-[10px] text-slate-400">{p.type}</span>
+                    <span className="text-[10px] text-emerald-400 block">R$ {p.unitValue.toFixed(2)} / un</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col">
+                      <label className="text-[9px] text-slate-500 mb-0.5 text-right">Qtd.</label>
+                      <input
+                        type="number"
+                        value={p.qty}
+                        onChange={(e) => handleProductQtyChange(p.id, e.target.value)}
+                        disabled={isLocked}
+                        min="0"
+                        className="w-20 bg-slate-800 border border-slate-700 text-white rounded px-1 py-1 text-center font-bold text-sm text-brand-secondary outline-none focus:border-brand-primary disabled:opacity-70"
+                      />
+                    </div>
+
+                    {!isLocked && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveProduct(p.id)}
+                        className="text-rose-500 hover:text-rose-400 p-1 mt-3 transition-colors"
+                        title="Remover produto"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -199,8 +371,20 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
               {/* Distribuição da carga */}
               <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 mb-2">
                 <div className="flex justify-between items-center mb-3 text-sm">
-                  <strong className="text-slate-300">Distribuição de Carga</strong>
-                  <span className={allocatedTotal === totalBreads ? "text-emerald-400" : "text-amber-400"}>
+                  <div className="flex items-center gap-2">
+                    <strong className="text-slate-300">Distribuição de Carga</strong>
+                    {!isLocked && (
+                      <button
+                        type="button"
+                        onClick={handleAutoAllocate}
+                        className="text-[11px] bg-slate-700 hover:bg-slate-600 text-brand-primary px-2.5 py-0.5 rounded border border-slate-600 transition-colors font-semibold"
+                        title="Distribui o total de produtos igualmente entre as filiais"
+                      >
+                        Auto-distribuir
+                      </button>
+                    )}
+                  </div>
+                  <span className={allocatedTotal === totalBreads ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
                     Alocado: {allocatedTotal} / {totalBreads}
                   </span>
                 </div>
@@ -224,16 +408,55 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
 
             {/* Veiculos de Frota */}
             <div className="mt-6 border-t border-slate-700 pt-6">
-              <h4 className="font-bold text-slate-200 mb-4 flex items-center gap-2"><Truck className="text-brand-primary"/> 3. Dimensionamento de Frota</h4>
-              <p className="text-sm text-slate-400 mb-4">Escolha a frota necessária para suprir a demanda de <strong>{totalBreads} pães</strong>.</p>
+              <h4 className="font-bold text-slate-200 mb-2 flex items-center gap-2"><Truck className="text-brand-primary"/> 3. Dimensionamento de Frota</h4>
               
-              <div className="space-y-3 mb-6">
+              <div className="bg-blue-950/40 text-blue-300 border border-blue-800/60 p-3 rounded-lg text-xs leading-relaxed mb-4">
+                ℹ️ **Serviço Terceirizado Indexado:** Os veículos da frota abaixo são operados por empresas terceirizadas parceiras. O SIT indexa e integra esses serviços em tempo real para consolidar e otimizar a sua logística.
+              </div>
+
+              {/* Toggle de Transporte Próprio (Autônomo) */}
+              <div className="bg-slate-900 border border-amber-500/30 p-4 rounded-lg flex items-start gap-4 mb-4">
+                <div className="mt-1">
+                  <input 
+                    type="checkbox" 
+                    id="isAutonomous" 
+                    checked={isAutonomous}
+                    onChange={(e) => {
+                      setIsAutonomous(e.target.checked);
+                      if (e.target.checked) {
+                        setFleetCart({});
+                      } else {
+                        setFleetCart({ fiorino: 1 });
+                      }
+                    }}
+                    disabled={isLocked}
+                    className="w-5 h-5 rounded bg-slate-800 border-slate-600 text-brand-primary focus:ring-brand-primary cursor-pointer"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="isAutonomous" className="font-bold text-amber-300 flex items-center gap-2 cursor-pointer text-sm">
+                    🚚 Utilizar Transporte Próprio (Autônomo)
+                  </label>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Marque para transportar usando seus próprios veículos. O custo de frete será **R$ 0,00**, assumindo toda a responsabilidade operacional e de controle de temperatura.
+                  </p>
+                </div>
+              </div>
+
+              {!isAutonomous && (
+                <p className="text-sm text-slate-400 mb-4">Escolha a frota necessária para suprir a demanda de <strong>{totalBreads} pães/produtos</strong>.</p>
+              )}
+
+              <div className={`space-y-3 mb-6 transition-opacity duration-200 ${isAutonomous ? 'opacity-40 pointer-events-none' : ''}`}>
                 {FLEET.map(v => {
                   const qty = fleetCart[v.id] || 0;
                   return (
                     <div key={v.id} className="bg-slate-900 border border-slate-700 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
-                        <strong className="text-slate-200 block">{v.name}</strong>
+                        <div className="flex items-center gap-2">
+                          <strong className="text-slate-200 block">{v.name}</strong>
+                          <span className="text-[10px] text-slate-400 border border-slate-700 bg-slate-950 px-1.5 py-0.5 rounded font-mono">Terceirizado</span>
+                        </div>
                         <span className="text-xs text-brand-secondary">Capacidade: {v.capacity} pães</span>
                         <span className="text-emerald-400 font-bold ml-4">R$ {v.price.toFixed(2)}</span>
                       </div>
@@ -242,7 +465,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                         <button 
                           type="button"
                           onClick={() => handleAddFleet(v.id, -1)}
-                          disabled={isLocked || qty === 0}
+                          disabled={isLocked || qty === 0 || isAutonomous}
                           className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-md disabled:opacity-50"
                         >
                           -
@@ -251,7 +474,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                         <button 
                           type="button"
                           onClick={() => handleAddFleet(v.id, 1)}
-                          disabled={isLocked}
+                          disabled={isLocked || isAutonomous}
                           className="w-8 h-8 flex items-center justify-center bg-brand-primary hover:bg-amber-400 text-brand-dark font-bold rounded-md disabled:opacity-50"
                         >
                           +
