@@ -6,9 +6,28 @@ import LightTelemetry from './LightTelemetry';
 import LiveMapRoute from './LiveMapRoute';
 import AiContextPanel from './AiContextPanel';
 import MethodologyManual from './MethodologyManual';
-import { DELIVERY_NODES, FLEET_VEHICLES, CURRENT_TRIP } from '../data/bakeryData';
+import { FLEET_VEHICLES, CURRENT_TRIP } from '../data/bakeryData';
 
 export default function TrackingTab({ onLock, onReset, onTripComplete, storeResult }) {
+  const nodes = React.useMemo(() => {
+    const baseNodes = [
+      { id: 'cd', name: 'CD (Fábrica Central)', type: 'cd', status: 'completed', quantity: storeResult?.products?.reduce((s,p)=>s+p.qty, 0) || 2194 }
+    ];
+    const count = storeResult?.stopsCount || 4;
+    const allocations = storeResult?.stopAllocations || [500, 500, 500, 694];
+    for (let i = 0; i < count; i++) {
+      const qty = allocations[i] || 0;
+      baseNodes.push({
+        id: `filial${i + 1}`,
+        name: `Filial ${i + 1} (${qty} un)`,
+        type: 'branch',
+        status: 'pending',
+        quantity: qty
+      });
+    }
+    return baseNodes;
+  }, [storeResult]);
+
   const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
   const [stepStatus, setStepStatus] = useState('waiting');
   const [selectedVehicleId, setSelectedVehicleId] = useState(FLEET_VEHICLES[0].id);
@@ -89,7 +108,7 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
         });
       }, 2000); 
     } else {
-      if (etaMins === 0 && currentNodeIndex < DELIVERY_NODES.length - 1) {
+      if (etaMins === 0 && currentNodeIndex < nodes.length - 1) {
         setEtaMins(15 + Math.floor(Math.random() * 10)); 
       }
     }
@@ -114,11 +133,11 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
   // Speech on status change and trigger history save on complete
   useEffect(() => {
     if (stepStatus === 'loading') {
-      speakAndShow(`Carregamento iniciado na ${DELIVERY_NODES[currentNodeIndex].name}. Conferindo produtos.`);
+      speakAndShow(`Carregamento iniciado na ${nodes[currentNodeIndex].name}. Conferindo produtos.`);
     } else if (stepStatus === 'transit') {
-      speakAndShow(`Veículo em trânsito. A caminho de ${DELIVERY_NODES[currentNodeIndex + 1]?.name || 'próxima parada'}. Acompanhe pelo mapa.`);
+      speakAndShow(`Veículo em trânsito. A caminho de ${nodes[currentNodeIndex + 1]?.name || 'próxima parada'}. Acompanhe pelo mapa.`);
     } else if (stepStatus === 'unloading') {
-      speakAndShow(`Chegamos ao destino: ${DELIVERY_NODES[currentNodeIndex].name}. Iniciando conferência e descarga rápida.`);
+      speakAndShow(`Chegamos ao destino: ${nodes[currentNodeIndex].name}. Iniciando conferência e descarga rápida.`);
     } else if (stepStatus === 'completed') {
       speakAndShow("Excelente trabalho! Ciclo de entrega finalizado com sucesso. Viagem registrada no histórico de KPIs.");
       if (onTripComplete && storeResult) {
@@ -151,7 +170,7 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
   }, [stepStatus, currentNodeIndex]);
 
   const handleSimulateNext = () => {
-    if (currentNodeIndex >= DELIVERY_NODES.length - 1 && stepStatus === 'unloading') {
+    if (currentNodeIndex >= nodes.length - 1 && stepStatus === 'unloading') {
       setStepStatus('completed');
       return;
     }
@@ -159,7 +178,7 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
     if (stepStatus === 'waiting') {
       setStepStatus('loading');
       if (onLock) onLock();
-      showToast('Logística Iniciada', `Carregamento iniciado na ${DELIVERY_NODES[currentNodeIndex].name}.`);
+      showToast('Logística Iniciada', `Carregamento iniciado na ${nodes[currentNodeIndex].name}.`);
     } else if (stepStatus === 'loading') {
       setStepStatus('transit');
       setShowGeofence(false);
@@ -187,7 +206,7 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
             <div>
               <h3 className="font-bold text-blue-300 text-lg">Alerta de Geofencing (Pré-Chegada)</h3>
               <p className="text-blue-100 text-sm">
-                Veículo a menos de 500m (ETA: {etaMins}m) da <strong>{DELIVERY_NODES[currentNodeIndex + 1]?.name}</strong>. 
+                Veículo a menos de 500m (ETA: {etaMins}m) da <strong>{nodes[currentNodeIndex + 1]?.name}</strong>. 
                 Por favor, prepare a câmara de recepção para evitar quebra da cadeia de frio!
               </p>
             </div>
@@ -212,7 +231,7 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
         </div>
         <div className="bg-brand-card border border-slate-800 p-4 rounded-xl flex items-center gap-4 relative shadow-lg">
           <div className="relative w-20 h-20 flex-shrink-0 bg-slate-900 rounded-lg p-1 border border-slate-700 flex items-center justify-center">
-            <img src="/robot_assistant.png" alt="SIT Assistant" className="w-full h-full object-contain rounded" />
+            <img src="/robot.png" alt="SIT Assistant" className="w-full h-full object-contain rounded" />
             <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 w-3.5 h-3.5 rounded-full border-2 border-brand-card animate-pulse" />
           </div>
           <div className="flex-1">
@@ -240,10 +259,11 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
       <LiveMapRoute 
         currentNodeIndex={currentNodeIndex}
         stepStatus={stepStatus}
+        stopsCount={storeResult?.stopsCount || 4}
       />
 
       <BakeryDashboard 
-        nodes={DELIVERY_NODES} 
+        nodes={nodes} 
         currentNodeIndex={currentNodeIndex} 
         stepStatus={stepStatus} 
         onSimulateNext={handleSimulateNext}
@@ -273,7 +293,7 @@ export default function TrackingTab({ onLock, onReset, onTripComplete, storeResu
               <Package className="text-brand-secondary" /> Módulo de Recebimento Digital
             </h3>
             <p className="text-slate-300 text-sm mb-3">
-              O motorista chegou na <strong>{DELIVERY_NODES[currentNodeIndex].name}</strong>. Utilize o leitor de QR Code para validar as {DELIVERY_NODES[currentNodeIndex].quantity} unidades e evitar divergências de estoque!
+              O motorista chegou na <strong>{nodes[currentNodeIndex].name}</strong>. Utilize o leitor de QR Code para validar as {nodes[currentNodeIndex].quantity} unidades e evitar divergências de estoque!
             </p>
             <button 
               onClick={handleSimulateNext}

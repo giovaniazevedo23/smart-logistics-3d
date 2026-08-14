@@ -8,7 +8,10 @@ const WAYPOINTS = [
   { name: 'Filial 4', lat: -5.1100, lng: -42.7500 },
 ];
 
-export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
+export default function LiveMapRoute({ currentNodeIndex, stepStatus, stopsCount = 4 }) {
+  const activeWaypoints = React.useMemo(() => {
+    return WAYPOINTS.slice(0, (stopsCount || 4) + 1);
+  }, [stopsCount]);
   const [isMapLoaded, setIsMapLoaded] = React.useState(!!window.L);
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -47,7 +50,7 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
         maxZoom: 20
       }).addTo(map);
 
-      const latlngs = WAYPOINTS.map(wp => L.latLng(wp.lat, wp.lng));
+      const latlngs = activeWaypoints.map(wp => L.latLng(wp.lat, wp.lng));
 
       // Use Leaflet Routing Machine
       const routingControl = L.Routing.control({
@@ -74,7 +77,7 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
       });
 
       // Add nodes as circle markers
-      WAYPOINTS.forEach((wp, idx) => {
+      activeWaypoints.forEach((wp, idx) => {
         const isCD = idx === 0;
         L.circleMarker([wp.lat, wp.lng], {
           radius: isCD ? 8 : 6,
@@ -96,7 +99,7 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
         iconAnchor: [12, 12]
       });
 
-      markerRef.current = L.marker([WAYPOINTS[0].lat, WAYPOINTS[0].lng], { icon: truckIcon }).addTo(map);
+      markerRef.current = L.marker([activeWaypoints[0].lat, activeWaypoints[0].lng], { icon: truckIcon }).addTo(map);
 
       mapInstance.current = map;
 
@@ -119,8 +122,8 @@ export default function LiveMapRoute({ currentNodeIndex, stepStatus }) {
       cancelAnimationFrame(animationRef.current);
     }
 
-    const currentWP = WAYPOINTS[currentNodeIndex];
-    const nextWP = WAYPOINTS[currentNodeIndex + 1];
+    const currentWP = activeWaypoints[currentNodeIndex];
+    const nextWP = activeWaypoints[currentNodeIndex + 1];
 
     if (stepStatus === 'transit' && nextWP) {
       const { coordinates, waypointIndices } = routeDataRef.current;

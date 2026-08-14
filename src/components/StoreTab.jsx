@@ -14,9 +14,9 @@ const EQUIPMENTS = [
 ];
 
 const FLEET = [
-  { id: 'fiorino', name: 'Fiorino Refrigerada', capacity: 1000, price: 150.00 },
-  { id: 'vuc', name: 'VUC Urbano', capacity: 2500, price: 250.00 },
-  { id: 'hr', name: 'Caminhão HR', capacity: 4000, price: 350.00 }
+  { id: 'fiorino', name: 'Fiorino Refrigerada', capacity: 1000, price: 150.00, company: 'Superfrios' },
+  { id: 'vuc', name: 'VUC Urbano', capacity: 2500, price: 250.00, company: 'Dito Transportes' },
+  { id: 'hr', name: 'Caminhão HR', capacity: 4000, price: 350.00, company: 'Kanejo' }
 ];
 
 export default function StoreTab({ storeResult, setStoreResult, setActiveTab, isLocked }) {
@@ -156,30 +156,41 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
       });
     }
 
-    const stopsCost = stopsCount > 1 ? (stopsCount - 1) * 100 : 0;
+    const originalStopsCost = stopsCount > 1 ? (stopsCount - 1) * 100 : 0;
     const extraKmCost = routeDistance > 50 ? (routeDistance - 50) * 2.50 : 0;
 
     // Calculate freight discount
     let discountPercent = 0;
-    if (selectedPlan === 'basic') discountPercent = 0.10;
-    else if (selectedPlan === 'premium') discountPercent = 0.20;
-    else if (selectedPlan === 'gold') discountPercent = 0.30;
+    let stopsDiscountPercent = 0;
+    if (selectedPlan === 'basic') {
+      discountPercent = 0.10;
+    } else if (selectedPlan === 'premium') {
+      discountPercent = 0.20;
+      stopsDiscountPercent = 0.15;
+    } else if (selectedPlan === 'gold') {
+      discountPercent = 0.30;
+      stopsDiscountPercent = 0.25;
+    }
 
-    const baseFreightOriginal = fleetTotal + stopsCost + extraKmCost;
+    const baseFreightOriginal = fleetTotal + extraKmCost;
     const freightDiscount = baseFreightOriginal * discountPercent;
     const baseFreightDiscounted = baseFreightOriginal - freightDiscount;
+
+    const stopsDiscount = originalStopsCost * stopsDiscountPercent;
+    const stopsCost = originalStopsCost - stopsDiscount;
 
     // Insurance: free if any plan is selected
     const effectiveInsuranceFee = selectedPlan !== 'none' ? 0 : insuranceFee;
     const finalInsuranceFee = hasInsurance ? effectiveInsuranceFee : 0;
 
-    const finalTotal = baseFreightDiscounted + equipTotal + finalInsuranceFee;
+    const finalTotal = baseFreightDiscounted + stopsCost + equipTotal + finalInsuranceFee;
 
     return { 
       equipTotal, 
       fleetTotal, 
       fleetCapacity, 
       stopsCost, 
+      stopsDiscount,
       extraKmCost, 
       freightDiscount, 
       finalTotal, 
@@ -187,7 +198,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
     };
   };
 
-  const { equipTotal, fleetTotal, fleetCapacity, stopsCost, extraKmCost, freightDiscount, finalTotal, insuranceFee: finalInsuranceFee } = calculateTotal();
+  const { equipTotal, fleetTotal, fleetCapacity, stopsCost, stopsDiscount = 0, extraKmCost, freightDiscount, finalTotal, insuranceFee: finalInsuranceFee } = calculateTotal();
   const capacityPct = totalBreads > 0 ? Math.min(100, (fleetCapacity / totalBreads) * 100) : 100;
   const isCapacityMet = fleetCapacity >= totalBreads;
 
@@ -216,6 +227,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
         finalTotal, 
         baseFreight: fleetTotal, 
         stopsCost, 
+        stopsDiscount,
         extraKmCost, 
         freightDiscount, 
         insuranceFee: finalInsuranceFee 
@@ -451,7 +463,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
               <h4 className="font-bold text-slate-200 mb-2 flex items-center gap-2"><Truck className="text-brand-primary"/> 3. Dimensionamento de Frota</h4>
               
               <div className="bg-blue-950/40 text-blue-300 border border-blue-800/60 p-3 rounded-lg text-xs leading-relaxed mb-4">
-                ℹ️ **Serviço Terceirizado Indexado:** Os veículos da frota abaixo são operados por empresas terceirizadas parceiras. O SIT indexa e integra esses serviços em tempo real para consolidar e otimizar a sua logística.
+                ℹ️ **Frota Homologada Parceira:** Os veículos da frota abaixo são operados por nossas transportadoras credenciadas (**Superfrios**, **Dito Transportes** e **Kanejo**). O SIT indexa e integra esses serviços em tempo real para consolidar e otimizar a sua logística.
               </div>
 
               {/* Toggle de Transporte Próprio (Autônomo) */}
@@ -495,7 +507,7 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                       <div>
                         <div className="flex items-center gap-2">
                           <strong className="text-slate-200 block">{v.name}</strong>
-                          <span className="text-[10px] text-slate-400 border border-slate-700 bg-slate-950 px-1.5 py-0.5 rounded font-mono">Terceirizado</span>
+                          <span className="text-[10px] text-slate-400 border border-slate-700 bg-slate-950 px-1.5 py-0.5 rounded font-mono">{v.company}</span>
                         </div>
                         <span className="text-xs text-brand-secondary">Capacidade: {v.capacity} pães</span>
                         <span className="text-emerald-400 font-bold ml-4">R$ {v.price.toFixed(2)}</span>
@@ -608,11 +620,11 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                     <strong className="text-emerald-400">Plano BÁSICO</strong>
                     <span className="text-xs text-emerald-400 font-bold bg-emerald-900/30 px-1.5 py-0.5 rounded">10% OFF</span>
                   </div>
-                  <p className="text-xs text-slate-400">Ideal para microempresas validando a operação. Inclui seguro básico, monitoramento de até 2 filiais e suporte via ticket.</p>
+                  <p className="text-xs text-slate-400 font-sans">Ideal para microempresas. **Até 10 viagens/mês**. 10% de desconto no frete base e seguro de carga incluso.</p>
                 </div>
                 <div className="text-right mt-4 flex justify-between items-end">
-                  <span className="text-[10px] text-emerald-400 font-mono">🛡️ Seguro Incluso</span>
-                  <span className="font-bold text-sm text-emerald-300">R$ 149,00/mês</span>
+                  <span className="text-[10px] text-emerald-400 font-mono">🛡️ Até 10 viagens</span>
+                  <span className="font-bold text-sm text-emerald-300">R$ 350,00/mês</span>
                 </div>
               </div>
 
@@ -631,11 +643,11 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                     <strong className="text-brand-secondary">Plano PREMIUM</strong>
                     <span className="text-xs text-brand-secondary font-bold bg-blue-900/30 px-1.5 py-0.5 rounded">20% OFF</span>
                   </div>
-                  <p className="text-xs text-slate-400">Para redes médias (4 a 6 filiais). Inclui Telemetria Bluetooth IoT ativa, alertas por geocerca a 500m, assistente inteligente e seguro completo + garantia de descarte térmico.</p>
+                  <p className="text-xs text-slate-400 font-sans">Médias redes. **Até 25 viagens/mês**. 20% OFF no frete, **15% OFF paradas extras** e telemetria IoT ativa.</p>
                 </div>
                 <div className="text-right mt-4 flex justify-between items-end">
-                  <span className="text-[10px] text-brand-secondary font-mono">📡 IoT + Seguro Total</span>
-                  <span className="font-bold text-sm text-brand-secondary">R$ 299,00/mês</span>
+                  <span className="text-[10px] text-brand-secondary font-mono">📡 IoT + 15% Paradas</span>
+                  <span className="font-bold text-sm text-brand-secondary">R$ 435,00/mês</span>
                 </div>
               </div>
 
@@ -653,11 +665,11 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
                     <strong className="text-brand-primary">Plano GOLD</strong>
                     <span className="text-xs text-brand-primary font-bold bg-amber-900/30 px-1.5 py-0.5 rounded">30% OFF</span>
                   </div>
-                  <p className="text-xs text-slate-400">Para alta escala. Emissão ilimitada de SWOT/FOFA com relatórios mensais, torre de controle 24/7, roteirização inteligente e monitoramento ilimitado.</p>
+                  <p className="text-xs text-slate-400 font-sans font-sans">Alta escala. **Viagens ilimitadas**. 30% OFF no frete, **25% OFF paradas extras** e suporte corporativo dedicado.</p>
                 </div>
                 <div className="text-right mt-4 flex justify-between items-end">
-                  <span className="text-[10px] text-brand-primary font-mono">👑 Gestor Dedicado</span>
-                  <span className="font-bold text-sm text-brand-primary">R$ 499,00/mês</span>
+                  <span className="text-[10px] text-brand-primary font-mono">👑 Viagens Ilimitadas</span>
+                  <span className="font-bold text-sm text-brand-primary">R$ 600,00/mês</span>
                 </div>
               </div>
             </div>
@@ -763,15 +775,22 @@ export default function StoreTab({ storeResult, setStoreResult, setActiveTab, is
 
               {freightDiscount > 0 && (
                 <div className="flex justify-between items-center text-emerald-400 font-semibold">
-                  <span>Desconto de Assinatura ({selectedPlan === 'basic' ? '10%' : selectedPlan === 'premium' ? '20%' : '30%'}):</span>
+                  <span>Desconto de Frete ({selectedPlan === 'basic' ? '10%' : selectedPlan === 'premium' ? '20%' : '30%'}):</span>
                   <span>- R$ {freightDiscount.toFixed(2)}</span>
+                </div>
+              )}
+
+              {stopsDiscount > 0 && (
+                <div className="flex justify-between items-center text-emerald-400 font-semibold">
+                  <span>Desconto Paradas ({selectedPlan === 'premium' ? '15%' : '25%'}):</span>
+                  <span>- R$ {stopsDiscount.toFixed(2)}</span>
                 </div>
               )}
 
               {selectedPlan !== 'none' && (
                 <div className="flex justify-between items-center text-slate-400 text-xs border border-slate-800 p-2 rounded bg-slate-950/40">
                   <span>Assinatura Mensal:</span>
-                  <span className="font-bold text-slate-300">R$ {selectedPlan === 'basic' ? '149,00' : selectedPlan === 'premium' ? '299,00' : '499,00'} / mês</span>
+                  <span className="font-bold text-slate-300">R$ {selectedPlan === 'basic' ? '350,00' : selectedPlan === 'premium' ? '435,00' : '600,00'} / mês</span>
                 </div>
               )}
 

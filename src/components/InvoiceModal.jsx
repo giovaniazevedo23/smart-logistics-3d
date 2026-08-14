@@ -48,7 +48,13 @@ export default function InvoiceModal({ savedData, onAccept, onClose }) {
             {totals.stopsCost > 0 && (
               <div className="flex justify-between text-slate-600">
                 <span>Taxa Paradas Extras ({stopsCount - 1}x R$100):</span> 
-                <span>R$ {totals.stopsCost.toFixed(2)}</span>
+                <span>R$ {(totals.stopsCost + (totals.stopsDiscount || 0)).toFixed(2)}</span>
+              </div>
+            )}
+            {totals.stopsDiscount > 0 && (
+              <div className="flex justify-between text-emerald-600 font-bold">
+                <span>Desconto Paradas ({savedData.selectedPlan === 'premium' ? '15%' : '25%'}):</span>
+                <span>- R$ {totals.stopsDiscount.toFixed(2)}</span>
               </div>
             )}
             {totals.extraKmCost > 0 && (
@@ -59,7 +65,7 @@ export default function InvoiceModal({ savedData, onAccept, onClose }) {
             )}
             {totals.freightDiscount > 0 && (
               <div className="flex justify-between text-emerald-600 font-bold">
-                <span>Desconto Assinatura ({savedData.selectedPlan === 'basic' ? '10%' : savedData.selectedPlan === 'premium' ? '20%' : '30%'}):</span>
+                <span>Desconto Frete ({savedData.selectedPlan === 'basic' ? '10%' : savedData.selectedPlan === 'premium' ? '20%' : '30%'}):</span>
                 <span>- R$ {totals.freightDiscount.toFixed(2)}</span>
               </div>
             )}

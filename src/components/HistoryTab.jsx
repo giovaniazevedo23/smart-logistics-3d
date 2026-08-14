@@ -46,7 +46,7 @@ export default function HistoryTab({ trips }) {
         
         {/* KPI 1: Custo por Km */}
         <div className="bg-brand-card border border-slate-800 p-6 rounded-xl shadow-lg relative overflow-hidden group hover:border-brand-secondary transition-all">
-          <div className="absolute -right-4 -bottom-4 text-slate-850/30 text-7xl font-bold group-hover:scale-110 transition-transform select-none">KM</div>
+          <div className="absolute -right-2 -bottom-2 text-slate-950/5 text-7xl font-bold group-hover:scale-110 transition-transform select-none pointer-events-none z-0">KM</div>
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 bg-blue-500/10 rounded-lg text-brand-secondary">
               <DollarSign size={24} />
@@ -61,7 +61,7 @@ export default function HistoryTab({ trips }) {
 
         {/* KPI 2: Frete sobre Faturamento */}
         <div className="bg-brand-card border border-slate-800 p-6 rounded-xl shadow-lg relative overflow-hidden group hover:border-emerald-500 transition-all">
-          <div className="absolute -right-4 -bottom-4 text-slate-850/30 text-7xl font-bold group-hover:scale-110 transition-transform select-none">%</div>
+          <div className="absolute -right-2 -bottom-2 text-slate-950/5 text-7xl font-bold group-hover:scale-110 transition-transform select-none pointer-events-none z-0">%</div>
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-400">
               <Percent size={24} />
@@ -76,7 +76,7 @@ export default function HistoryTab({ trips }) {
 
         {/* KPI 3: Consumo Médio de Combustível */}
         <div className="bg-brand-card border border-slate-800 p-6 rounded-xl shadow-lg relative overflow-hidden group hover:border-brand-primary transition-all">
-          <div className="absolute -right-4 -bottom-4 text-slate-850/30 text-7xl font-bold group-hover:scale-110 transition-transform select-none">L/km</div>
+          <div className="absolute -right-2 -bottom-2 text-slate-950/5 text-7xl font-bold group-hover:scale-110 transition-transform select-none pointer-events-none z-0 font-sans">L/km</div>
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 bg-amber-500/10 rounded-lg text-brand-primary">
               <Fuel size={24} />
@@ -91,7 +91,7 @@ export default function HistoryTab({ trips }) {
 
         {/* KPI 4: Taxa de Ocupação da Frota */}
         <div className="bg-brand-card border border-slate-800 p-6 rounded-xl shadow-lg relative overflow-hidden group hover:border-purple-500 transition-all">
-          <div className="absolute -right-4 -bottom-4 text-slate-850/30 text-7xl font-bold group-hover:scale-110 transition-transform select-none">Cap</div>
+          <div className="absolute -right-2 -bottom-2 text-slate-950/5 text-7xl font-bold group-hover:scale-110 transition-transform select-none pointer-events-none z-0">Cap</div>
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 bg-purple-500/10 rounded-lg text-purple-400">
               <BarChart2 size={24} />
